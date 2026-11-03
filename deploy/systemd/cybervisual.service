@@ -1,0 +1,25 @@
+[Unit]
+Description=CyberVisual Edge Vision Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cybervisual
+Environment=PYTHONPATH=/opt/cybervisual/backend
+Environment=CYBERVISUAL_HOST=0.0.0.0
+Environment=CYBERVISUAL_PORT=8000
+Environment=CYBERVISUAL_CONFIG=/opt/cybervisual/backend/config.example.json
+Environment=CYBERVISUAL_FRONTEND_DIST=/opt/cybervisual/frontend/dist
+Environment=CYBERVISUAL_SOURCE=camera
+Environment=CYBERVISUAL_CAMERA_INDEX=0
+Environment=CYBERVISUAL_CAMERA_FOURCC=MJPG
+Environment=CYBERVISUAL_CAMERA_FPS=30
+Environment=CYBERVISUAL_DETECTOR=auto
+Environment=CYBERVISUAL_MODEL_PATH=models/yolov5n_fp16.engine
+ExecStart=/opt/cybervisual/scripts/run_backend.sh
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
