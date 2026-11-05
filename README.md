@@ -4,6 +4,12 @@ CyberVisual is an edge vision console for USB-camera object detection on Jetson 
 
 Based on [nvidia-jetson-nano-visual](https://github.com/zhubby/nvidia-jetson-nano-visual) at commit `326f9e2`.
 
+## IMX477 HQ Mount
+
+View the [interactive assembly figure](https://arasaka-academy.github.io/CyberVisual/figure/) and download the printable 3MF files. The [print and assembly guide](models/imx477-hq/README.zh-CN.md) covers the camera mount, fasteners and reference dimensions.
+
+GitHub Pages publishes the figure and its downloads automatically when these assets change on `main`. See [Pages deployment](docs/figure-pages.md) for the local preview and publishing workflow.
+
 ## Project Layout
 
 - `backend/` - Flask backend, camera worker, detector adapters, MJPEG stream, REST API, tests.
