@@ -1,0 +1,26 @@
+eval: "Neutral camera centred"
+line ends: 0 of 20168 ends on 4007 lines float
+eval: "Front orthographic centring verified"
+shot /tmp/cybervisual-rev-c-front.png · readout "0° · X 0.00 / Y 0.00 mm"
+line ends: 0 of 9866 ends on 1385 lines float
+eval: "Top orthographic centring verified"
+shot /tmp/cybervisual-rev-c-top.png · readout "0° · X 0.00 / Y 0.00 mm"
+line ends: 0 of 10112 ends on 2478 lines float
+eval: "Isometric restored"
+shot /tmp/cybervisual-rev-c-exploded.png · readout "拆装示意 100%"
+line ends: 0 of 20350 ends on 3783 lines float
+eval: "Camera screws withdrawing through PCB holes"
+shot /tmp/cybervisual-rev-c-screw-withdrawal.png · readout "拆装示意 12%"
+line ends: 0 of 20330 ends on 3919 lines float
+eval: "Camera forward removal after screws clear"
+line ends: 0 of 20294 ends on 3830 lines float
+eval: "Positive pitch"
+line ends: 0 of 21024 ends on 4147 lines float
+eval: "Negative pitch"
+line ends: 0 of 19240 ends on 4079 lines float
+eval: "Neutral reset"
+eval: "Rear button and pressed state verified"
+shot /tmp/cybervisual-rev-c-rear.png · readout "0° · X 0.00 / Y 0.00 mm"
+line ends: 0 of 18742 ends on 3788 lines float
+eval: {"parts":57,"rear":"true","horizontalOverflow":false}
+console: clean

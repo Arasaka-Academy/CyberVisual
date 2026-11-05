@@ -1,0 +1,43 @@
+[2026-11-05 11:59:08.293468] [0x00000001eeddff80] [trace]   Initializing StaticPrintConfigs
+[IMX477-HQ-print-layout.3mf]
+size_x = 82.000595
+size_y = 42.000008
+size_z = 84.000000
+min_x = -41.000298
+min_y = -21.000004
+min_z = -42.000000
+max_x = 41.000298
+max_y = 21.000004
+max_z = 42.000000
+number_of_facets = 3004
+manifold = yes
+number_of_parts =  1
+volume = 37631.386719
+[IMX477-HQ-print-layout.3mf]
+size_x = 80.000000
+size_y = 80.000000
+size_z = 63.000000
+min_x = -40.000000
+min_y = -40.000000
+min_z = -31.500000
+max_x = 40.000000
+max_y = 40.000000
+max_z = 31.500000
+number_of_facets = 2168
+manifold = yes
+number_of_parts =  1
+volume = 57400.542969
+[IMX477-HQ-print-layout.3mf]
+size_x = 42.799999
+size_y = 46.000000
+size_z = 67.000000
+min_x = -21.400000
+min_y = -23.000000
+min_z = -33.500000
+max_x = 21.400000
+max_y = 23.000000
+max_z = 33.500000
+number_of_facets = 3092
+manifold = yes
+number_of_parts =  1
+volume = 10806.880859

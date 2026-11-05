@@ -1,0 +1,3 @@
+saved /tmp/cybervisual-rev-c-phone.png
+clip 14,238 362x713 · readout "0° · X 0.00 / Y 0.00 mm" · scrolls sideways: no
+console: clean

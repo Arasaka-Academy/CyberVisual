@@ -1,0 +1,7 @@
+eval: "Start at pitch limit"
+eval: "Rear button checked after state update"
+eval: "Front view resets pitch, assembly and rear toggle"
+eval: "Top view checked"
+eval: "Isometric restored"
+eval: {"width":390,"view":"top","theme":"light","readout":"0° · X 0.00 / Y 0.00 mm","horizontalOverflow":false}
+console: clean

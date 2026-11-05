@@ -1,0 +1,19 @@
+eval: "Assembled"
+line ends: 0 of 20168 ends on 4007 lines float
+shot /tmp/cybervisual-rev-c-dark-joints.png · readout "0° · X 0.00 / Y 0.00 mm"
+eval: "Apart"
+line ends: 0 of 20350 ends on 3783 lines float
+shot /tmp/cybervisual-rev-c-dark-apart-joints.png · readout "拆装示意 100%"
+eval: "Camera screw withdrawal"
+line ends: 0 of 20330 ends on 3919 lines float
+eval: "Camera forward removal"
+line ends: 0 of 20294 ends on 3830 lines float
+eval: "Rear"
+line ends: 0 of 18742 ends on 3788 lines float
+line ends: 0 of 9866 ends on 1385 lines float
+shot /tmp/cybervisual-rev-c-dark-front.png · readout "0° · X 0.00 / Y 0.00 mm"
+line ends: 0 of 10112 ends on 2478 lines float
+shot /tmp/cybervisual-rev-c-dark-top.png · readout "0° · X 0.00 / Y 0.00 mm"
+eval: "Reset"
+eval: {"reduced":true,"state":"0° · X 0.00 / Y 0.00 mm"}
+console: clean

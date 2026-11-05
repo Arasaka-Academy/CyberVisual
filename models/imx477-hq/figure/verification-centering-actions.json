@@ -1,0 +1,18 @@
+[
+  ["eval", "window.__cadFigure.setPose({tilt:35}); 'Start at pitch limit'"],
+  ["click", "button[data-view]"],
+  ["eval", "if(document.querySelector('.iso-stage').dataset.view!=='rear'||document.querySelector('button[data-view]').getAttribute('aria-pressed')!=='true') throw Error('Rear view button'); 'Rear button checked after state update'"],
+  ["click", "[data-ortho=\"orthofront\"]"],
+  ["eval", "const s=document.querySelector('.iso-stage'); if(s.dataset.view!=='orthofront'||s.dataset.pitch!=='0.000'||s.dataset.explode!=='0.0000'||document.querySelector('button[data-view]').getAttribute('aria-pressed')!=='false'||document.querySelector('[data-readout]').textContent!=='0° · X 0.00 / Y 0.00 mm') throw Error('Front reset or centring'); 'Front view resets pitch, assembly and rear toggle'"],
+  ["click", "[data-ortho=\"top\"]"],
+  ["eval", "if(document.querySelector('.iso-stage').dataset.view!=='top'||document.querySelector('[data-ortho=\"top\"]').getAttribute('aria-pressed')!=='true'||getComputedStyle(document.querySelector('[data-shadow]')).display!=='none') throw Error('Top state'); 'Top view checked'"],
+  ["click", "[data-ortho=\"top\"]"],
+  ["eval", "if(document.querySelector('.iso-stage').dataset.view!=='front') throw Error('Isometric restore'); 'Isometric restored'"],
+  ["key", " "],
+  ["until", "document.querySelector('.iso-stage').dataset.explode==='1.0000'", 12000],
+  ["key", "Escape"],
+  ["until", "document.querySelector('.iso-stage').dataset.explode==='0.0000'", 12000],
+  ["click", "[data-theme-toggle]"],
+  ["click", "[data-ortho=\"top\"]"],
+  ["eval", "const selectors=['button','[data-readout]','output']; const bad=selectors.flatMap(sel=>[...document.querySelectorAll(sel)]).filter(el=>{const r=el.getBoundingClientRect();return r.left<0||r.right>innerWidth});if(bad.length||document.documentElement.scrollWidth>innerWidth) throw Error('Phone overflow'); ({width:innerWidth,view:document.querySelector('.iso-stage').dataset.view,theme:document.body.dataset.theme,readout:document.querySelector('[data-readout]').textContent,horizontalOverflow:false})"]
+]

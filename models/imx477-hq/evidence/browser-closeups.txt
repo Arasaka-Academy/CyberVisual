@@ -1,0 +1,13 @@
+eval: "Front camera screws and insulating washers"
+shot /tmp/cybervisual-rev-c-light-joints.png · readout "0° · X 0.00 / Y 0.00 mm"
+eval: "Screws removed, support columns visible"
+shot /tmp/cybervisual-rev-c-light-apart-joints.png · readout "拆装示意 100%"
+eval: "Rear hex nuts and connecting arm"
+shot /tmp/cybervisual-rev-c-light-rear-joints.png · readout "0° · X 0.00 / Y 0.00 mm"
+eval: "Dark theme"
+shot /tmp/cybervisual-rev-c-dark-rear-joints.png · readout "0° · X 0.00 / Y 0.00 mm"
+eval: "Rear nut removal and screw clearance"
+shot /tmp/cybervisual-rev-c-dark-rear-apart-joints.png · readout "拆装示意 100%"
+shot /tmp/cybervisual-rev-c-light-rear-apart-joints.png · readout "拆装示意 100%"
+eval: {"parts":57,"theme":"light"}
+console: clean

@@ -1,0 +1,2 @@
+light {"parts":57,"assembled":{"triangles":9724,"fragments":16714,"splits":6990},"exploded":{"triangles":9724,"fragments":16153,"splits":6429}}
+dark {"parts":57,"assembled":{"triangles":9724,"fragments":16714,"splits":6990},"exploded":{"triangles":9724,"fragments":16153,"splits":6429}}

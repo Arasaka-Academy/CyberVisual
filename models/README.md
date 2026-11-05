@@ -1,5 +1,7 @@
 # Models
 
+The printable Waveshare IMX477 HQ pan/tilt mount, 3MF files and interactive assembly figure are in [imx477-hq/README.zh-CN.md](imx477-hq/README.zh-CN.md). The original user-supplied STL files are kept alongside this directory.
+
 Place YOLO model files here.
 
 Expected default:

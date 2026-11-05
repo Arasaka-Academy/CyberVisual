@@ -1,0 +1,17 @@
+[
+  ["eval", "window.__cadFigure.setPose(); 'Front camera screws and insulating washers'"],
+  ["move", ".iso-stage", 0.7, 0.5],
+  ["shot", "/tmp/cybervisual-rev-c-light-joints.png", null, 4, [160,50,560,465]],
+  ["eval", "window.__cadFigure.setPose({apart:1}); 'Screws removed, support columns visible'"],
+  ["shot", "/tmp/cybervisual-rev-c-light-apart-joints.png", null, 4, [100,35,640,490]],
+  ["eval", "window.__cadFigure.setPose({rear:true}); 'Rear hex nuts and connecting arm'"],
+  ["shot", "/tmp/cybervisual-rev-c-light-rear-joints.png", null, 4, [110,40,640,490]],
+  ["click", "[data-theme-toggle]"],
+  ["eval", "if(document.body.dataset.theme!=='dark') throw Error('Theme toggle'); 'Dark theme'"],
+  ["shot", "/tmp/cybervisual-rev-c-dark-rear-joints.png", null, 4, [110,40,640,490]],
+  ["eval", "window.__cadFigure.setPose({apart:1,rear:true}); 'Rear nut removal and screw clearance'"],
+  ["shot", "/tmp/cybervisual-rev-c-dark-rear-apart-joints.png", null, 4, [100,35,640,490]],
+  ["click", "[data-theme-toggle]"],
+  ["shot", "/tmp/cybervisual-rev-c-light-rear-apart-joints.png", null, 4, [100,35,640,490]],
+  ["eval", "if(document.documentElement.scrollWidth>innerWidth) throw Error('Horizontal overflow'); ({parts:window.__cadFigure.scenePartCount,theme:document.body.dataset.theme})"]
+]

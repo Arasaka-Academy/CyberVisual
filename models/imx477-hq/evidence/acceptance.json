@@ -1,0 +1,93 @@
+{
+  "revision": "C-centred-camera-and-lens",
+  "checked_at": "2026-11-05T12:04:12+08:00",
+  "cad": "Three watertight, consistently wound, positive-volume connected meshes; print bed Z=0.",
+  "three_mf": "Four millimetre 3MF documents read by lib3mf without warnings and trimesh; layout has three build items.",
+  "slicer": "Bambu Studio 02.08.02.61 CLI --info: three objects, each manifold=yes. Import verification only; no G-code or printer settings.",
+  "camera_centering": {
+    "neutral_camera_bounds_mm": [
+      [
+        -20.0,
+        -27.8,
+        106.0
+      ],
+      [
+        20.0,
+        27.8,
+        146.0
+      ]
+    ],
+    "base_centre_xy_mm": [
+      0.0,
+      0.0
+    ],
+    "camera_envelope_centre_mm": [
+      0.0,
+      0.0,
+      126.0
+    ],
+    "centre_offset_xy_mm": [
+      0.0,
+      0.0
+    ],
+    "scope": "At zero pitch: real PCB shape and stated reference C/CS lens/connector envelopes, excluding mount and motor. This is geometric centring, not mass balance or a guarantee for another lens."
+  },
+  "camera_mount": {
+    "hole_centres_xz_mm": [
+      [
+        -15.0,
+        111.0
+      ],
+      [
+        -15.0,
+        141.0
+      ],
+      [
+        15.0,
+        111.0
+      ],
+      [
+        15.0,
+        141.0
+      ]
+    ],
+    "hole_pitch_xz_mm": [
+      30,
+      30
+    ],
+    "camera_screws": 4,
+    "printed_bore_gauge_intersections_mm3": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "nominal_stack_including_nut_mm": 10.6,
+    "nominal_tip_beyond_nut_mm": 1.4,
+    "nut_insertion_sample_count": 68,
+    "nut_insertion_collisions": [],
+    "scope": "Nominal 1.6mm PCB, 0.5mm washer, 2mm hex nut; plain screw thread envelope, not actual thread engagement, torque, tool-access or PCB component validation."
+  },
+  "pitch_samples": 71,
+  "yaw_samples": 72,
+  "combined_pan_pitch_samples": 360,
+  "disassembly_samples": 81,
+  "declared_collision_count": 0,
+  "carrier_to_upper_min_gap_mm": 2.5366,
+  "svg_depth_audit_poses": 52,
+  "svg_ray_surface_tests": 77933,
+  "svg_depth_order_failures": 0,
+  "browser": "Light/dark, desktop and 390px phone, keyboard pitch/reset/assembly, theme toggle, rear button state, front/top controls with neutral pose reset, reduced motion and SVG without WebGL. Console clean; controls/readout fit phone; no horizontal overflow.",
+  "line_end_checks": {
+    "browser-light.txt": 9,
+    "browser-dark.txt": 7
+  },
+  "floating_line_ends": 0,
+  "visual_review": "Read assembled, exploded, front/top, light/dark phone, screw withdrawal and rear screenshots; read 4x front/rear assembled/apart close-ups in both themes.",
+  "sources_sha256": {
+    "上座.STL": "6e82a8868ded7e215c8aefbb34f55b9b8d7d93ea279c329bf5f96c52ff2aa2a2",
+    "底座.STL": "95b4669d2cd786b7fbc386deec7140499632206715dd7d4e49b5ec98503e909e",
+    "激光支座.STL": "a6f45e66364ea782edc06c0db425c9e93d42c19c5799ced4fc057cfb1be8d184"
+  },
+  "physical": "Not printed, assembled or load-tested. Actual PCB thickness/components, fasteners, lens, motors, fit, torque and flexible wiring require first-article verification. Geometric centring applies to the declared reference lens at zero pitch, not centre of mass."
+}

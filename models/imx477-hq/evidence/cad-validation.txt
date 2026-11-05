@@ -1,0 +1,129 @@
+{
+  "parts": {
+    "01-base": {
+      "watertight": true,
+      "consistent_winding": true,
+      "connected_components": 1,
+      "vertices": 1064,
+      "triangles": 2168,
+      "size_mm": [
+        80.0,
+        80.0,
+        63.0
+      ],
+      "volume_mm3": 57400.5413,
+      "minimum_z_mm": 0.0
+    },
+    "02-upper-m3x6": {
+      "watertight": true,
+      "consistent_winding": true,
+      "connected_components": 1,
+      "vertices": 1492,
+      "triangles": 3004,
+      "size_mm": [
+        82.0006,
+        42.00001,
+        84.0
+      ],
+      "volume_mm3": 37631.3522,
+      "minimum_z_mm": 0.0
+    },
+    "03-camera-carrier": {
+      "watertight": true,
+      "consistent_winding": true,
+      "connected_components": 1,
+      "vertices": 1536,
+      "triangles": 3092,
+      "size_mm": [
+        42.8,
+        46.0,
+        67.0
+      ],
+      "volume_mm3": 10806.8609,
+      "minimum_z_mm": 0.0
+    }
+  },
+  "three_mf": {
+    "01-base.3mf": {
+      "lib3mf_build_items": 1,
+      "lib3mf_warnings": [],
+      "trimesh_geometry_count": 1,
+      "bounds_mm": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          80.0,
+          80.0,
+          63.0
+        ]
+      ]
+    },
+    "03-camera-carrier.3mf": {
+      "lib3mf_build_items": 1,
+      "lib3mf_warnings": [],
+      "trimesh_geometry_count": 1,
+      "bounds_mm": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          42.8,
+          46.0,
+          67.0
+        ]
+      ]
+    },
+    "IMX477-HQ-print-layout.3mf": {
+      "lib3mf_build_items": 3,
+      "lib3mf_warnings": [],
+      "trimesh_geometry_count": 3,
+      "bounds_mm": [
+        [
+          5.0,
+          5.0,
+          0.0
+        ],
+        [
+          182.0006,
+          106.0,
+          84.0
+        ]
+      ]
+    },
+    "02-upper-m3x6.3mf": {
+      "lib3mf_build_items": 1,
+      "lib3mf_warnings": [],
+      "trimesh_geometry_count": 1,
+      "bounds_mm": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          82.0006,
+          42.0,
+          84.0
+        ]
+      ]
+    }
+  },
+  "assembly": {
+    "angles_degrees": [
+      -35,
+      35
+    ],
+    "sample_step_degrees": 1,
+    "sample_count": 71,
+    "collisions": [],
+    "seated_collisions": [],
+    "carrier_to_upper_min_gap_mm": 2.5366,
+    "scope": "Rigid printed parts, all camera screws/nuts/washers, motor screw heads, reference motors and stated reference lens; excludes cable motion, loads and real hardware."
+  }
+}
+CAD validation passed

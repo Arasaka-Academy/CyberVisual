@@ -1,0 +1,2 @@
+SVG CAD depth audit: 52 poses; 77933 ray/surface tests; 0 depth order failures
+SVG CAD depth audit passed

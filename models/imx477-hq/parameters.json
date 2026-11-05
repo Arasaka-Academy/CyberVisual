@@ -1,0 +1,78 @@
+{
+  "revision": "C-centred-camera-and-lens",
+  "unit": "mm",
+  "pcb_width": 38.0,
+  "pcb_height": 38.0,
+  "pcb_thickness_assumed": 1.6,
+  "pcb_hole_diameter": 2.5,
+  "pcb_hole_pitch": 30.0,
+  "pcb_rear_clearance": 5.0,
+  "camera_mount_clearance_hole": 2.8,
+  "camera_support_diameter": 6.0,
+  "camera_back_frame_size": [
+    46.0,
+    46.0,
+    3.0
+  ],
+  "camera_back_frame_opening": [
+    28.0,
+    28.0
+  ],
+  "camera_nut_pocket_across_flats": 5.3,
+  "camera_nut_pocket_depth": 1.5,
+  "camera_nut_across_flats": 5.0,
+  "camera_nut_thickness": 2.0,
+  "camera_washer_thickness": 0.5,
+  "camera_washer_maximum_diameter": 5.5,
+  "camera_screw_length": 12.0,
+  "camera_screw_head_diameter": 4.5,
+  "camera_screw_head_height": 2.5,
+  "camera_screw_stack_nominal": 10.6,
+  "camera_screw_tip_beyond_nut_nominal": 1.4,
+  "shaft_bore_diameter": 5.3,
+  "shaft_bore_flat_offset": 2.1,
+  "shaft_bore_depth": 18.5,
+  "m3_tap_pilot": 2.6,
+  "upper_counterbore_diameter": 6.2,
+  "upper_counterbore_depth": 2.2,
+  "upper_remaining_grip": 2.8,
+  "m3x6_thread_engagement": 3.2,
+  "camera_pcb_back_centre": [
+    0.0,
+    27.8,
+    126.0
+  ],
+  "camera_height_above_tilt_axis": 0.0,
+  "camera_neutral_envelope_centre_xy": [
+    0.0,
+    0.0
+  ],
+  "camera_neutral_envelope_size": [
+    40.0,
+    55.6,
+    40.0
+  ],
+  "camera_centering_basis": "Neutral PCB, lens, C/CS seat and connector envelope; not centre of mass.",
+  "tilt_motor_translation_from_source": [
+    62.0,
+    0.0,
+    37.0
+  ],
+  "yaw_head_clearance_recess_depth": 2.0,
+  "tilt_axis_z": 126.0,
+  "reference_lens_diameter": 40.0,
+  "reference_lens_front_y": -27.8,
+  "pitch_check_range_degrees": [
+    -35,
+    35
+  ],
+  "pitch_check_step_degrees": 1,
+  "hardware": {
+    "M3x10": 4,
+    "M3x6": 4,
+    "M3x5": 1,
+    "M2.5x12": 4,
+    "M2.5_hex_nut_AF5_thickness2": 4,
+    "M2.5_insulating_washer_thickness0.5": 4
+  }
+}
