@@ -6,10 +6,11 @@
 
 | 检查 | 环境与结果 |
 | --- | --- |
-| 后端全量 | Linux Docker，88 passed，包含 76 项常规测试与 12 项协议互通测试 |
+| 后端全量 | Linux Docker，95 passed，包含 80 项常规测试与 15 项协议互通测试；本机常规测试 80 passed，协议模块按环境跳过 |
 | 双路视频 | 独立 onvif-zeep 获取 raw／annotated URI，FFmpeg 对 TCP、UDP 均实际解码 RGB 帧；通过确定性边框像素区域确认标注区别 |
 | 共享编码 | 同一路两个并发 RTSP 会话仅一条编码管线；一个客户端先断开，另一个继续完成解码 |
-| 重连／认证 | 断开后重连成功；RTSP 缺失／错误账号被拒绝；HTTP Digest 快照成功且重复凭据头被拒绝；WSSE 过期／重放被拒绝 |
+| 视频边界与故障 | 322×242 的非四字节对齐 RGB 行经两路 RTSP 实际解码并校验颜色；强制终止 UDP 客户端后到期会话和编码管线释放；注入编码错误后状态可见且另一视频流继续解码 |
+| 重连／认证 | 断开后重连成功；RTSP 缺失／错误账号被拒绝；HTTP Digest 快照成功且重复凭据头被拒绝；WSSE 过期／重放及 Base64 padding 位变体重放被拒绝 |
 | Device／Media1 | 独立 onvif-zeep 0.2.12／Zeep 4.3.3 查询服务、双 Profile、共同物理源、编码参数及快照 |
 | Media2 | Zeep strict 模式加载官方 Media2 WSDL／XSD 的离线快照，读取双 Profile、编码器、取流与快照 URI |
 | WS-Discovery | 通过实际 UDP 3702 组播 Probe 得到稳定 UUID 与正确 XAddr，单播 Resolve 成功，停止后端口可重新绑定 |
@@ -17,12 +18,13 @@
 | 故障与恢复 | 摄像头 read 失败与检测器加载失败均上报离线，恢复后上报在线，不误发消失；检测失败期间 raw RTSP 仍可实际解码 |
 | 模拟 PTZ | 独立客户端验证绝对／相对／连续移动、显式停止、0.1 秒和默认 2 秒超时、边界限位、固定归位、预置位设置／调用／删除 |
 | 配置与生命周期 | 旧配置默认关闭；无秘密配置回传；持久 UUID；热重配后 PTZ 能力和 Profile 正确，旧订阅失效，视频可重连；各用例退出时采集／推理／RTSP 线程结束、端口释放 |
-| 前端 | Vitest 4 passed；TypeScript／Vite 生产构建通过；生成的 dist 已更新 |
+| 时钟与异常退出 | 单元测试验证 UTC 回拨时 RTSP PTS 继续推进；采集线程未退出时拒绝重启，退出后可再次启动；PTZUnavailable 不破坏状态、健康与退出流程 |
+| 前端 | Vitest 5 passed，含 PTZ 故障展示；TypeScript／Vite 生产构建通过；生成的 dist 已更新 |
 | 浏览器 DOM | 实际 Linux 服务与 MJPEG；1280、375、320 CSS 像素宽度下无页面横向溢出；服务状态可见，账号／编码器／事件／模拟 PTZ／双路地址均可读取 |
 | 基线静态检查 | 后端运行时代码通过 Python 3.6 语法解析；部署脚本 bash 语法、JSON 配置、dist 引用、官方 schema 校验和通过 |
 
 协议测试使用 Debian bookworm、GStreamer 1.22、`x264enc`、FFmpeg 5.1，
-输入为 320×240 synthetic 和显式 mock。浏览器预览使用 640×480 synthetic。
+输入为 320×240 synthetic／322×242 固定色块和显式 mock。浏览器预览使用 640×480 synthetic。
 浏览器截图调用超时，本记录仅将 DOM、尺寸和实际预览加载列为浏览器证据。
 
 ## 待设备条件具备后验收
@@ -33,5 +35,5 @@
 - 真实 AI 模型效果与机械 PTZ 动作。真实电机驱动属于后续单独验收范围。
 - 商业 NVR／ONVIF Device Manager 的互通与正式 ONVIF Profile 认证。
 
-已加入 GitHub Actions 工作流；本记录不代表远端 CI 已运行。
+原实现 `b56debe` 的 GitHub Actions 已通过；本轮修复的远端结果以对应提交的 Actions 为准。
 复现命令、支持矩阵与 CyberOS 接入契约见 [network-camera.md](network-camera.md)。

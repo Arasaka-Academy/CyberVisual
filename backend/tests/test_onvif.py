@@ -159,3 +159,30 @@ def test_unready_ptz_driver_returns_service_fault(camera_app):
     assert result.status_code == 503
     assert b"ServiceNotAvailable" in result.data
     assert b"PTZ driver is not ready" in result.data
+
+
+def test_unready_ptz_does_not_break_status_health_or_shutdown(camera_app):
+    from cybervisual.network_camera.ptz import PTZController, PTZUnavailable
+
+    class UnreadyDriver:
+        def status(self):
+            raise PTZUnavailable("Driver has not completed calibration")
+
+        def stop(self):
+            raise PTZUnavailable("Driver transport is offline")
+
+    runtime = camera_app.config["runtime"]
+    service = runtime.network_camera
+    service._prepare()
+    service._ptz = PTZController(UnreadyDriver())
+    client = camera_app.test_client()
+    response = client.get("/api/status")
+    assert response.status_code == 200
+    state = response.get_json()["network_camera"]["ptz"]
+    assert state["enabled"]
+    assert state["state"] == "unavailable"
+    assert state["last_error"]
+    assert state["position"] is None
+    assert client.get("/healthz").status_code == 200
+    runtime.stop()
+    assert service._state == "stopped"

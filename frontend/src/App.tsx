@@ -326,7 +326,7 @@ function NetworkCameraPanel({ camera }: { camera?: NetworkCameraStatus }) {
             <div><dt>Encoder</dt><dd>{camera.encoder || "Unavailable"}</dd></div>
             <div><dt>Discovery</dt><dd>{camera.discovery.state}</dd></div>
             <div><dt>AI events</dt><dd>{camera.events.online ? "Online" : "Offline"}</dd></div>
-            <div><dt>PTZ</dt><dd>{camera.ptz.simulated ? "Simulated" : camera.ptz.enabled ? "Enabled" : "Disabled"}</dd></div>
+            <div><dt>PTZ</dt><dd>{camera.ptz.last_error ? "Unavailable" : camera.ptz.simulated ? "Simulated" : camera.ptz.enabled ? "Enabled" : "Disabled"}</dd></div>
           </dl>
           <div className="protocol-endpoints">
             {camera.onvif_url && <div><span>ONVIF</span><code>{camera.onvif_url}</code></div>}
@@ -338,8 +338,8 @@ function NetworkCameraPanel({ camera }: { camera?: NetworkCameraStatus }) {
               </div>
             ))}
           </div>
-          {(camera.last_error || camera.discovery.last_error || camera.events.last_error) && (
-            <p className="protocol-error" role="status">{camera.last_error || camera.discovery.last_error || camera.events.last_error}</p>
+          {(camera.last_error || camera.discovery.last_error || camera.events.last_error || camera.ptz.last_error) && (
+            <p className="protocol-error" role="status">{camera.last_error || camera.discovery.last_error || camera.events.last_error || camera.ptz.last_error}</p>
           )}
         </>
       ) : <p className="protocol-help">Enable network camera output in the device configuration to connect a camera manager.</p>}

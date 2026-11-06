@@ -112,7 +112,8 @@ ONVIF 快照只返回有效且最近 5 秒内的画面，无新画面时返回 5
 - 实际 `encoder`；各 `profiles` 的 token、取流／快照地址、媒体管线 active、
   已推送帧数与最近错误。没有客户端时管线处于 idle，帧数为累计值。
 - `discovery` 的运行或故障状态；`events` 的 online、person/vehicle 状态、订阅数与故障原因。
-- `ptz` 的驱动、是否模拟、位置与移动状态。
+- `ptz` 的驱动、是否模拟、位置与移动状态，以及 `state`（disabled／running／unavailable）和 `last_error`。
+  驱动未就绪时状态与健康接口继续响应，退出流程仍释放视频与事件资源。
 
 缺少账号或 GI／编码器时，新增协议输出报告错误，现有面板继续运行。
 WS-Discovery 无法加入接口时状态为 `degraded`，仍可手动填写 ONVIF 地址。
@@ -187,7 +188,7 @@ Profile token 和设备 UUID 跨重启稳定，订阅 token 为临时随机值�
 每个新订阅先收到 `PropertyOperation=Initialized` 的当前状态；
 `SetSynchronizationPoint` 清空该订阅积压并重新发送当前状态。
 支持 Concrete／ONVIF ConcreteSet 的精确主题过滤和 `|` 联合，不支持内容条件、
-通配符、历史查询、Push Notify 或 Seek。默认最多 16 个订阅，每订阅队列最多 64 条。
+通配符、历史查询、Push Notify 或 Seek。默认最多 16 个订阅，每订阅队列最多 256 条。
 慢订阅溢出时丢弃积压并发送当前状态初始化；客户端不能将其视为完整历史事件日志。
 到期订阅在事件发布、订阅访问和状态查询时清理。
 

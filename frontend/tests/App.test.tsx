@@ -163,6 +163,31 @@ describe("App", () => {
     expect(screen.getByText("Simulated")).toBeInTheDocument();
     expect(screen.getByText("Account configured")).toBeInTheDocument();
   });
+
+  it("shows a PTZ fault while retaining camera connection details", async () => {
+    const previousFetch = fetch;
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/api/status")) return jsonResponse({
+        ...statusPayload,
+        network_camera: {
+          enabled: true, state: "running", credentials_configured: true,
+          onvif_url: "http://192.168.1.20:8000/onvif/device_service", encoder: "x264enc",
+          last_error: null, discovery: { state: "running", last_error: null },
+          events: { online: true, subscribers: 0, presence: {}, last_error: null },
+          ptz: { enabled: true, driver: "simulated", state: "unavailable", simulated: false,
+            position: null, last_error: "PTZ driver is not ready." },
+          profiles: [
+            { token: "raw", name: "Original", rtsp_uri: "rtsp://192.168.1.20:8554/raw", snapshot_uri: null }
+          ]
+        }
+      });
+      return previousFetch(input, init);
+    }));
+    render(<App />);
+    expect(await screen.findByText("PTZ driver is not ready.")).toBeInTheDocument();
+    expect(screen.getByText("Unavailable")).toBeInTheDocument();
+    expect(screen.getByText("rtsp://192.168.1.20:8554/raw")).toBeInTheDocument();
+  });
 });
 
 function putConfigRequest() {

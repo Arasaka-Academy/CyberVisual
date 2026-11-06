@@ -37,7 +37,7 @@ class NetworkCameraService(object):
         self._rtsp = self._discovery = None
         self._started = False
         self._state = "stopped" if self.settings["enabled"] else "disabled"
-        self._error = self._discovery_error = None
+        self._error = self._discovery_error = self._ptz_error = None
 
     @property
     def device_id(self):
@@ -123,7 +123,10 @@ class NetworkCameraService(object):
                 self._rtsp.stop()
                 self._rtsp = None
             if self._ptz and self._ptz.enabled:
-                self._ptz.stop()
+                try:
+                    self._ptz.stop()
+                except PTZError:
+                    self._ptz_error = "PTZ driver is not ready."
             self.runtime.events.close()
             self._started = False
             self._state = "stopped" if self.settings["enabled"] else "disabled"
@@ -137,7 +140,7 @@ class NetworkCameraService(object):
             self.settings = candidate["network_camera"]
             with self._identity_lock:
                 self._host = self._ptz = None
-            self._error = self._discovery_error = None
+            self._error = self._discovery_error = self._ptz_error = None
             self._state = "stopped" if self.settings["enabled"] else "disabled"
             if was_started:
                 self.start()
@@ -147,8 +150,14 @@ class NetworkCameraService(object):
         rtsp = self._rtsp
         output = rtsp.status() if rtsp else {"encoder": None, "streams": {}}
         position = None
-        if self._ptz and self._ptz.enabled:
-            position = self._ptz.status()
+        ptz = self._ptz
+        ptz_enabled = bool(ptz and ptz.enabled)
+        if ptz_enabled:
+            try:
+                position = ptz.status()
+                self._ptz_error = None
+            except PTZError:
+                self._ptz_error = "PTZ driver is not ready."
         ready = self._host is not None
         profiles = []
         for token, name in (("raw", "Original"), ("annotated", "AI annotated")):
@@ -163,7 +172,9 @@ class NetworkCameraService(object):
                 "discovery": {"state": "running" if self._discovery else "error" if self._discovery_error else "disabled",
                               "last_error": self._discovery_error},
                 "events": self.runtime.events.status(),
-                "ptz": {"enabled": bool(self._ptz and self._ptz.enabled), "driver": self.settings["ptz_driver"],
+                "ptz": {"enabled": ptz_enabled, "driver": self.settings["ptz_driver"],
+                        "state": "unavailable" if self._ptz_error else "running" if ptz_enabled else "disabled",
+                        "last_error": self._ptz_error,
                         "simulated": bool(position and position.get("simulated")), "position": position}}
 
     def register(self, app):
