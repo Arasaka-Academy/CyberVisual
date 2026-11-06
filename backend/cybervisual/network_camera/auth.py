@@ -59,7 +59,8 @@ class DeviceCredentials(object):
                 return False
         except (ValueError, TypeError, AttributeError):
             return False
-        return self._remember(("wsse", nonce.text, created.text), 1)
+        # Different Base64 padding bits can represent the same nonce bytes.
+        return self._remember(("wsse", raw_nonce, created.text), 1)
 
     def challenge(self):
         stamp = str(int(time.time()))

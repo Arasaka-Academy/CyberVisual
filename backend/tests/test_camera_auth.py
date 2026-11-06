@@ -36,6 +36,18 @@ def test_wsse_rejects_wrong_password_stale_timestamp_and_replay():
     assert credentials.verify_wsse(token()) is True
 
 
+def test_wsse_rejects_replay_with_alternate_base64_padding_bits():
+    credentials = DeviceCredentials("viewer", "test-password")
+    request = token(nonce=b"\x00" * 16)
+    nonce = request.find(".//wsse:Nonce", NS)
+    original = nonce.text
+    assert original.endswith("A==")
+    assert credentials.verify_wsse(request)
+    nonce.text = original[:-3] + "B=="
+    assert base64.b64decode(nonce.text, validate=True) == base64.b64decode(original, validate=True)
+    assert not credentials.verify_wsse(request)
+
+
 def test_xml_entities_are_rejected():
     with pytest.raises(SOAPFault):
         parse_xml(b'<!DOCTYPE x [<!ENTITY secret SYSTEM "file:///etc/passwd">]><x>&secret;</x>')
