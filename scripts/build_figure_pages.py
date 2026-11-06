@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stage the standalone figure and its downloads for GitHub Pages."""
+"""Stage the assembly figure, downloads and optional 3D lesson for GitHub Pages."""
 
 from __future__ import annotations
 
@@ -24,7 +24,12 @@ class PageLinks(HTMLParser):
                           if key in ("href", "src") and value)
 
 
-def build(output: Path) -> None:
+def build(output: Path, lesson_dist: Path | None = None) -> None:
+    if lesson_dist is not None:
+        for name in ("index.html", "lesson.html", "assets/gimbal.glb",
+                     "assets/nano.glb", "assets/supply.glb"):
+            if not (lesson_dist / name).is_file():
+                raise ValueError(f"Build the lesson first; missing: {lesson_dist / name}")
     # Require a new directory so staging cannot overwrite existing work.
     output.mkdir(parents=True)
     figure = output / "figure"
@@ -45,6 +50,9 @@ def build(output: Path) -> None:
         '<p><a href="figure/">打开 IMX477 居中云台示意图</a></p>'
         '<p><a href="IMX477-HQ-print-kit.zip">下载完整打印套件</a></p>'
         '</body></html>\n', encoding="utf-8")
+    if lesson_dist is not None:
+        shutil.copytree(lesson_dist, output / "lesson")
+        shutil.copy2(ROOT / "docs" / "pages" / "index.html", output / "index.html")
 
     # Relative links must work below /CyberVisual/, not just at a domain root.
     checked = 0
@@ -69,8 +77,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "_site",
                         help="New output directory (default: _site)")
+    parser.add_argument("--lesson-dist", type=Path,
+                        help="Built lesson dist directory to publish at lesson/")
     args = parser.parse_args()
-    build(args.output.resolve())
+    build(args.output.resolve(), args.lesson_dist.resolve() if args.lesson_dist else None)
 
 
 if __name__ == "__main__":

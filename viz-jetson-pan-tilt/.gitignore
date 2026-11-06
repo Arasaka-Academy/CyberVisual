@@ -1,0 +1,8 @@
+app/node_modules/
+app/dist/
+app/test-results/
+blender/*.blend1
+blender/*.log
+*.log
+evidence/*-first.png
+evidence/initial-*.png

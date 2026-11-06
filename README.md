@@ -10,6 +10,8 @@ View the [interactive assembly figure](https://arasaka-academy.github.io/CyberVi
 
 GitHub Pages publishes the figure and its downloads automatically when these assets change on `main`. See [Pages deployment](docs/figure-pages.md) for the local preview and publishing workflow.
 
+The [Jetson Nano pan/tilt 3D lesson](https://arasaka-academy.github.io/CyberVisual/lesson/) provides five Chinese interactive lessons and a build-your-own experiment explaining UART motor control and IMX477 CSI image return. It runs independently in the browser and includes an [offline single-file download](https://arasaka-academy.github.io/CyberVisual/lesson/lesson.html). See the [lesson source and run guide](viz-jetson-pan-tilt/README.md).
+
 ## Project Layout
 
 - `backend/` - Flask backend, camera worker, detector adapters, MJPEG stream, REST API, tests.

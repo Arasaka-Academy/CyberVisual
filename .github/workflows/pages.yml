@@ -1,4 +1,4 @@
-name: Deploy figure to GitHub Pages
+name: Deploy CyberVisual to GitHub Pages
 
 on:
   push:
@@ -6,8 +6,10 @@ on:
     paths:
       - .github/workflows/pages.yml
       - scripts/build_figure_pages.py
+      - docs/pages/**
       - models/imx477-hq/**
       - models/IMX477-HQ-print-kit.zip
+      - viz-jetson-pan-tilt/**
   workflow_dispatch:
 
 permissions:
@@ -29,8 +31,22 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
-      - name: Stage figure and verify download links
-        run: python3 scripts/build_figure_pages.py
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: viz-jetson-pan-tilt/app/package-lock.json
+      - name: Install lesson dependencies
+        working-directory: viz-jetson-pan-tilt/app
+        run: npm ci
+      - name: Verify and build the 3D lesson
+        working-directory: viz-jetson-pan-tilt/app
+        run: |
+          npm test
+          npm run build
+      - name: Stage the site and verify local links
+        run: python3 scripts/build_figure_pages.py --lesson-dist viz-jetson-pan-tilt/app/dist
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

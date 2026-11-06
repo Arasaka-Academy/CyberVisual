@@ -1,0 +1,286 @@
+{
+  "generated": "2026-11-06T03:27:16.079Z",
+  "base": "http://127.0.0.1:5420/",
+  "checks": [
+    "1920 overview renders and frames the complete gimbal",
+    "assembly slider physically disassembles and returns to the seated pose",
+    "pan and tilt ranges respond to keyboard and reset on chapter changes",
+    "UART delivers the command, then moves both axes to the target",
+    "selectable part details close with Escape and dialogs restore focus",
+    "capture produces an actual rendered frame and paired pose metadata",
+    "sandbox blocks missing parts, missing power and mismatched interfaces",
+    "valid sandbox runs, changes virtual imagery, and Stop freezes the complete state",
+    "sandbox reset clears placed parts, wiring, pending endpoints and captured images",
+    "continuous chapter changes cancel in-flight operations and keyboard navigation works",
+    "all three themes persist, recolor the page, and retain readable text contrast",
+    "1280 by 720 remains readable and completely frames the gimbal",
+    "390 px touch layout has no body overflow, with model and lesson visible",
+    "reduced motion preserves teaching results without animated travel",
+    "standalone HTML loads from file with all network requests blocked"
+  ],
+  "measurements": {
+    "desktop1920": {
+      "ready": true,
+      "fps": 60,
+      "anchors": {},
+      "connectorGap": 0,
+      "subjectBounds": {
+        "left": 0.3006130221060983,
+        "right": 0.7962553311159821,
+        "top": 0.2555154803219864,
+        "bottom": 0.8332754614466569
+      },
+      "camera": {
+        "position": [
+          0.32000000000000006,
+          0.24500000000000002,
+          0.43000000000000005
+        ],
+        "target": [
+          -0.02,
+          0.067,
+          0
+        ]
+      }
+    },
+    "theme-graphite": {
+      "colors": {
+        "background": "rgb(25, 35, 31)",
+        "expectedBackground": "#19231f",
+        "title": "rgb(231, 233, 221)",
+        "heading": "rgb(231, 233, 221)",
+        "quiet": "rgb(159, 170, 156)",
+        "muted": "rgb(178, 188, 174)",
+        "backgrounds": [
+          "#19231f",
+          "#26312b",
+          "#303c32",
+          "#222b29"
+        ]
+      },
+      "contrast": {
+        "title": 13.136386209444295,
+        "heading": 10.983678834321804,
+        "quiet": 4.787550709943635,
+        "muted": 5.883954251796616
+      }
+    },
+    "theme-blueprint": {
+      "colors": {
+        "background": "rgb(16, 39, 55)",
+        "expectedBackground": "#102737",
+        "title": "rgb(228, 239, 240)",
+        "heading": "rgb(228, 239, 240)",
+        "quiet": "rgb(156, 189, 202)",
+        "muted": "rgb(178, 204, 213)",
+        "backgrounds": [
+          "#102737",
+          "#163548",
+          "#204252",
+          "#122d40"
+        ]
+      },
+      "contrast": {
+        "title": 13.09314429377938,
+        "heading": 10.937322869432506,
+        "quiet": 5.373380460797922,
+        "muted": 6.364690037565073
+      }
+    },
+    "theme-paper": {
+      "colors": {
+        "background": "rgb(244, 243, 238)",
+        "expectedBackground": "#f4f3ee",
+        "title": "rgb(40, 49, 43)",
+        "heading": "rgb(40, 49, 43)",
+        "quiet": "rgb(99, 110, 97)",
+        "muted": "rgb(96, 108, 97)",
+        "backgrounds": [
+          "#f4f3ee",
+          "#fffefa",
+          "#f1f2eb",
+          "#f0f0e9"
+        ]
+      },
+      "contrast": {
+        "title": 12.081999117779926,
+        "heading": 13.301409425664275,
+        "quiet": 4.663951928776317,
+        "muted": 4.808843575887683
+      }
+    },
+    "desktop1280": {
+      "ready": true,
+      "fps": 60,
+      "anchors": {},
+      "connectorGap": 0,
+      "subjectBounds": {
+        "left": 0.2941708002208484,
+        "right": 0.8058273834029319,
+        "top": 0.2555154803219864,
+        "bottom": 0.8332754614466569
+      },
+      "camera": {
+        "position": [
+          0.32000000000000006,
+          0.24500000000000002,
+          0.43000000000000005
+        ],
+        "target": [
+          -0.02,
+          0.067,
+          0
+        ]
+      }
+    },
+    "mobile390": {
+      "ready": true,
+      "fps": 60,
+      "anchors": {},
+      "connectorGap": 0,
+      "subjectBounds": {
+        "left": 0.16115787363834866,
+        "right": 0.9550441744303386,
+        "top": 0.30544854776096786,
+        "bottom": 0.7517689017328344
+      },
+      "camera": {
+        "position": [
+          0.36494399629951224,
+          0.2949377736661245,
+          0.5698257662651487
+        ],
+        "target": [
+          -0.02,
+          0.067,
+          0
+        ]
+      }
+    },
+    "mobileAssemblyTray390": {
+      "ready": true,
+      "fps": 59,
+      "anchors": {},
+      "connectorGap": 0,
+      "subjectBounds": {
+        "left": 0.21701721211850195,
+        "right": 0.9794062954191695,
+        "top": 0.46915758560131193,
+        "bottom": 0.7260830828461035
+      },
+      "camera": {
+        "position": [
+          0.5298614764826547,
+          0.3849244151312763,
+          0.82978164835467
+        ],
+        "target": [
+          0.014970626193544041,
+          0.06799916074838698,
+          0.014987411225804588
+        ]
+      }
+    },
+    "mobileSandboxTray390": {
+      "ready": true,
+      "fps": 60,
+      "anchors": {
+        "nano.uart-pan": [
+          -0.14948124491186054,
+          0.009999999776482582,
+          -0.023690026646322696
+        ],
+        "nano.uart-tilt": [
+          -0.14148124453188093,
+          0.009999999776482582,
+          -0.023690026646322696
+        ],
+        "nano.csi": [
+          -0.15748124436051758,
+          0.006000000052154064,
+          0.047309971952968155
+        ],
+        "yaw.uart": [
+          0.08350247129457966,
+          0.012000000104308128,
+          0.044732480499545715
+        ],
+        "yaw.power": [
+          0.09150247167455927,
+          0.012000000104308128,
+          0.044732480499545715
+        ],
+        "tilt.uart": [
+          0.14661500525068355,
+          0.12507502196188328,
+          -0.028502471294579657
+        ],
+        "tilt.power": [
+          0.14661500525068355,
+          0.11807502267713901,
+          -0.022502471242425593
+        ],
+        "camera.csi": [
+          0.03307502208109257,
+          0.08591727655822262,
+          0.0034062221900180295
+        ],
+        "power.pan": [
+          -0.07176504820587462,
+          0.00800000037997961,
+          -0.10171125331216388
+        ],
+        "power.tilt": [
+          -0.07176504820587462,
+          0.00800000037997961,
+          -0.10771125336431794
+        ]
+      },
+      "connectorGap": 0,
+      "subjectBounds": {
+        "left": 0.04111359325788366,
+        "right": 0.9794931120310697,
+        "top": 0.4691608192375819,
+        "bottom": 0.7261282786283173
+      },
+      "camera": {
+        "position": [
+          0.5297898968750596,
+          0.38488539829547225,
+          0.8296689284091451
+        ],
+        "target": [
+          0.01495549927371965,
+          0.06799873996837719,
+          0.014980899715916858
+        ]
+      }
+    }
+  },
+  "screenshots": [
+    "desktop-overview.png",
+    "assembly-tray.png",
+    "pan-positive.png",
+    "pan-negative.png",
+    "tilt-positive.png",
+    "tilt-negative.png",
+    "uart-command.png",
+    "camera-capture.png",
+    "sandbox-validation.png",
+    "sandbox-complete.png",
+    "theme-graphite.png",
+    "theme-blueprint.png",
+    "theme-paper.png",
+    "desktop-1280.png",
+    "desktop-1280-graphite.png",
+    "desktop-1280-blueprint.png",
+    "mobile-overview.png",
+    "mobile-assembly-tray.png",
+    "mobile-capture.png",
+    "mobile-sandbox-graphite.png",
+    "mobile-sandbox-blueprint.png",
+    "mobile-sandbox.png",
+    "standalone-offline.png"
+  ],
+  "consoleErrors": []
+}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Jetson Nano 双轴视觉云台交互课、IMX477 装配图与打印文件。">
+  <title>CyberVisual · 视觉云台实验室</title>
+  <style>
+    :root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#28312b;background:#f4f3ee}
+    *{box-sizing:border-box}body{margin:0}main{max-width:840px;margin:0 auto;padding:56px 26px 48px}a{color:inherit;text-decoration:none}a:focus-visible{outline:2px solid #a45b32;outline-offset:5px;border-radius:6px}
+    .brand{font-size:13px;letter-spacing:.04em;color:#606c61}h1{font-size:clamp(29px,5vw,42px);font-weight:570;line-height:1.35;letter-spacing:-.04em;margin:50px 0 15px}h1 span{color:#a45b32}.intro{font-size:14px;line-height:1.9;color:#606c61;margin:0 0 35px}
+    nav{display:grid;gap:15px}.card{display:grid;grid-template-columns:1fr auto;gap:12px 20px;background:#fffefa;border:1px solid #dfe2d8;border-radius:15px;padding:27px;transition:border-color .15s,background .15s}.card:hover{border-color:#a45b32;background:#fffcf5}.tag{font-size:11px;color:#a45b32;grid-column:1/-1}.card h2{font-size:21px;font-weight:550;margin:0}.card p{grid-column:1;font-size:13px;line-height:1.9;color:#606c61;margin:0}.arrow{color:#a45b32;grid-column:2;grid-row:2/4;align-self:center;font-size:24px}
+    .links{display:flex;flex-wrap:wrap;gap:13px 26px;margin-top:26px;font-size:12px;color:#606c61}.links a{text-decoration:underline;text-underline-offset:4px}footer{border-top:1px solid #dfe2d8;font-size:11px;line-height:1.9;color:#606c61;margin-top:42px;padding-top:19px}
+    @media(max-width:480px){main{padding:30px 20px}h1{margin-top:35px}.card{padding:22px}.card h2{font-size:19px}.intro{font-size:13px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">CYBERVISUAL / 视觉云台实验室</div>
+    <h1>从结构到控制，<br>理解一台视觉云台<span>。</span></h1>
+    <p class="intro">先看零件怎样装起来，再动手理解相机怎样转动、指令怎样送达、图像怎样回来。</p>
+    <nav aria-label="选择内容">
+      <a class="card" href="lesson/">
+        <span class="tag">3D 交互课 · 五节课程与搭建实验</span>
+        <h2>双轴视觉云台</h2>
+        <p>Jetson Nano 通过 UART 控制两个 42 mm 一体驱动步进电机，IMX477 通过 CSI 回传图像。</p>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+      <a class="card" href="figure/">
+        <span class="tag">装配参考 · CAD 几何与打印文件</span>
+        <h2>IMX477 居中云台装配图</h2>
+        <p>交互查看底座、支架、相机和紧固件，下载 3MF 打印盘与装配说明。</p>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
+    </nav>
+    <div class="links">
+      <a href="lesson/lesson.html" download>下载离线课件 · HTML</a>
+      <a href="IMX477-HQ-print-kit.zip" download>下载完整打印套件 · ZIP</a>
+      <a href="README.zh-CN.md">打印与装配说明</a>
+    </div>
+    <footer>交互课为浏览器原理仿真；真实协议、引脚、电平和供电需按具体电机型号核对。打印件仍需首件试装与实物验证。</footer>
+  </main>
+</body>
+</html>
