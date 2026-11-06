@@ -1,0 +1,4 @@
+# Keep official schema bytes and whitespace intact for their recorded checksums.
+backend/tests/integration/specifications/*.xsd -text -whitespace
+backend/tests/integration/specifications/*.wsdl -text -whitespace
+backend/tests/integration/specifications/soap-envelope -text -whitespace

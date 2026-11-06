@@ -2,6 +2,12 @@
 
 CyberVisual is an edge vision console for USB-camera object detection on Jetson Nano, with a YOLO TensorRT runtime and a black/green web dashboard. The backend streams an annotated MJPEG feed and REST status/config endpoints; the frontend shows live detections, system health, metrics, snapshots, and runtime controls.
 
+Optional **ONVIF + RTSP** output makes each CyberVisual a managed network camera:
+shared H.264 `/raw` and `/annotated` streams, person/vehicle PullPoint events,
+WS-Discovery, Digest authentication, and a simulated PTZ adapter. It is disabled
+by default. See the [network camera deployment and CyberOS integration contract](docs/network-camera.md)
+for setup, supported ONVIF operations, and interoperability evidence.
+
 Based on [nvidia-jetson-nano-visual](https://github.com/zhubby/nvidia-jetson-nano-visual) at commit `326f9e2`.
 
 ## IMX477 HQ Mount

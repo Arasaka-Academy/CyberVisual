@@ -2,6 +2,28 @@ import json
 
 import pytest
 
+
+def test_network_camera_is_opt_in_and_nested_updates_preserve_other_settings():
+    from cybervisual.config import DEFAULT_CONFIG, merge_config
+
+    assert DEFAULT_CONFIG["network_camera"]["enabled"] is False
+    changed = merge_config(DEFAULT_CONFIG, {"network_camera": {"ptz_driver": "simulated"}})
+    assert changed["network_camera"]["rtsp_port"] == 8554
+    assert changed["network_camera"]["ptz_driver"] == "simulated"
+    assert DEFAULT_CONFIG["network_camera"]["ptz_driver"] == "disabled"
+
+
+@pytest.mark.parametrize("update", [
+    {"rtsp_port": 0}, {"encoder": "unknown"}, {"enabled": "yes"},
+    {"advertise_host": "0.0.0.0"}, {"raw_fps": 0}, {"raw_fps": 1.5},
+    {"password": "must-not-be-persisted"}, {"annotated_bitrate_kbps": 0},
+])
+def test_network_camera_rejects_invalid_or_secret_settings(update):
+    from cybervisual.config import DEFAULT_CONFIG, ConfigValidationError, merge_config
+
+    with pytest.raises(ConfigValidationError):
+        merge_config(DEFAULT_CONFIG, {"network_camera": update})
+
 from cybervisual.config import ConfigValidationError, DEFAULT_CONFIG, load_config, merge_config, validate_config
 
 

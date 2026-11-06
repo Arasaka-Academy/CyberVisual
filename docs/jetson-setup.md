@@ -17,6 +17,8 @@ The installer uses apt for JetPack-provided hardware packages:
 - `python3-venv`
 - `python3-pip`
 - `libopenblas-base`
+- `python3-gi`, `python3-gst-1.0`, `gir1.2-gst-rtsp-server-1.0`
+- `gstreamer1.0-tools` and base/good/bad/ugly plugins
 
 The Python virtual environment is created with `--system-site-packages` so it can import JetPack's OpenCV, TensorRT, and CUDA packages.
 
@@ -86,3 +88,13 @@ sudo journalctl -u cybervisual -f
 ```
 
 The service runs from `/opt/cybervisual` by default and starts automatically after reboot. For a different production path, edit `deploy/systemd/cybervisual.service` before installing.
+
+## 6. Optional ONVIF / RTSP Camera
+
+The service reads `/etc/cybervisual/camera.env` when present and stores its stable
+device UUID and PTZ presets in `/var/lib/cybervisual`. Existing installations keep
+network camera output disabled until explicitly enabled with credentials.
+
+Follow [network camera setup and acceptance](network-camera.md) to enable the
+two H.264 streams, verify `nvv4l2h264enc`, and connect an ONVIF client. Keep PTZ
+disabled on production cameras until a hardware driver is implemented and tested.

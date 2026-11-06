@@ -17,14 +17,18 @@ class LatestFrameBuffer(object):
         self._jpeg = None
         self._detections = []
         self._frame_ts = None
+        self._generation = 0
+        self._valid = False
 
-    def publish(self, frame, jpeg_bytes, detections, frame_ts=None):
+    def publish(self, frame, jpeg_bytes, detections, frame_ts=None, generation=0, valid=True):
         with self._condition:
             self._version += 1
             self._frame = frame
             self._jpeg = jpeg_bytes
             self._detections = list(detections or [])
             self._frame_ts = frame_ts if frame_ts is not None else time.time()
+            self._generation = generation
+            self._valid = valid
             self._condition.notify_all()
             return self._version
 
@@ -36,7 +40,26 @@ class LatestFrameBuffer(object):
                 "jpeg": self._jpeg,
                 "detections": list(self._detections),
                 "frame_ts": self._frame_ts,
+                "generation": self._generation,
+                "valid": self._valid,
             }
+
+    def invalidate(self):
+        with self._condition:
+            self._frame = None
+            self._jpeg = None
+            self._valid = False
+            self._condition.notify_all()
+
+    def wait_for_frame(self, last_version=None, timeout=1.0):
+        deadline = time.monotonic() + timeout
+        with self._condition:
+            while not self._valid or self._frame is None or (last_version is not None and self._version <= last_version):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return None
+                self._condition.wait(remaining)
+            return self.snapshot()
 
     def wait_for_jpeg(self, last_version=None, timeout=1.0):
         deadline = time.time() + timeout

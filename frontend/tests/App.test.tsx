@@ -137,6 +137,32 @@ describe("App", () => {
     expect(await screen.findByText("RUNNING")).toBeInTheDocument();
     expect(screen.getByText("0 saved")).toBeInTheDocument();
   });
+
+  it("shows connection addresses and identifies simulated PTZ", async () => {
+    const previousFetch = fetch;
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/api/status")) return jsonResponse({
+        ...statusPayload,
+        network_camera: {
+          enabled: true, state: "running", credentials_configured: true,
+          onvif_url: "http://192.168.1.20:8000/onvif/device_service", encoder: "x264enc",
+          last_error: null, discovery: { state: "running", last_error: null },
+          events: { online: true, subscribers: 1, presence: { person: true, vehicle: false }, last_error: null },
+          ptz: { enabled: true, driver: "simulated", simulated: true, position: null },
+          profiles: [
+            { token: "raw", name: "Original", rtsp_uri: "rtsp://192.168.1.20:8554/raw", snapshot_uri: null },
+            { token: "annotated", name: "AI annotated", rtsp_uri: "rtsp://192.168.1.20:8554/annotated", snapshot_uri: null }
+          ]
+        }
+      });
+      return previousFetch(input, init);
+    }));
+    render(<App />);
+    expect(await screen.findByText("rtsp://192.168.1.20:8554/raw")).toBeInTheDocument();
+    expect(screen.getByText("rtsp://192.168.1.20:8554/annotated")).toBeInTheDocument();
+    expect(screen.getByText("Simulated")).toBeInTheDocument();
+    expect(screen.getByText("Account configured")).toBeInTheDocument();
+  });
 });
 
 function putConfigRequest() {

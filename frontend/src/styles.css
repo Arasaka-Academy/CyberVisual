@@ -1334,3 +1334,12 @@ select:focus-visible {
     min-height: 13px;
   }
 }
+/* Camera manager connection details share the existing inspector panels. */
+.network-camera-panel { min-width: 0; }
+.network-camera-panel .panel-heading p { display: block; }
+.protocol-endpoints { display: grid; gap: 12px; margin-top: 16px; }
+.protocol-endpoints span { display: block; margin-bottom: 4px; color: var(--muted, #90958d); font-size: 11px; }
+.protocol-endpoints code { display: block; overflow-wrap: anywhere; font-size: 11px; line-height: 1.6; user-select: all; }
+.protocol-help, .protocol-error { margin: 12px 0 0; font-size: 12px; line-height: 1.6; }
+.protocol-help { color: var(--muted, #90958d); }
+.protocol-error { color: #ffc53d; overflow-wrap: anywhere; }

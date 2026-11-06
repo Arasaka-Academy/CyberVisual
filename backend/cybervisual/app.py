@@ -1,9 +1,12 @@
 import os
+import atexit
+import signal
 
 from flask import Flask, Response, jsonify, request, send_from_directory
 
 from .config import ConfigValidationError
 from .runtime import RuntimeService, _capture_dir, mjpeg_stream
+from .network_camera.server import NetworkCameraService
 
 
 def create_app(config_path=None, runtime=None, auto_start=True):
@@ -12,6 +15,9 @@ def create_app(config_path=None, runtime=None, auto_start=True):
     app = Flask(__name__, static_folder=static_folder, static_url_path="")
     service = runtime or RuntimeService(config_path=config_path)
     app.config["runtime"] = service
+    if service.network_camera is None:
+        service.network_camera = NetworkCameraService(service)
+    service.network_camera.register(app)
 
     if auto_start and not app.config.get("TESTING"):
         service.start()
@@ -81,9 +87,19 @@ def _frontend_dist():
 def main():
     config_path = os.environ.get("CYBERVISUAL_CONFIG", "")
     app = create_app(config_path=config_path or None)
+    runtime = app.config["runtime"]
+    atexit.register(runtime.stop)
+
+    def terminate(signum, frame):
+        raise SystemExit(0)
+
+    signal.signal(signal.SIGTERM, terminate)
     host = os.environ.get("CYBERVISUAL_HOST", "0.0.0.0")
     port = int(os.environ.get("CYBERVISUAL_PORT", "8000"))
-    app.run(host=host, port=port, threaded=True)
+    try:
+        app.run(host=host, port=port, threaded=True)
+    finally:
+        runtime.stop()
 
 
 if __name__ == "__main__":

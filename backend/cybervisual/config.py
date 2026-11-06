@@ -2,6 +2,8 @@ import json
 import os
 from copy import deepcopy
 
+from .network_camera.settings import DEFAULT_SETTINGS, validate_settings
+
 
 DEFAULT_CONFIG = {
     "camera_index": 0,
@@ -21,6 +23,7 @@ DEFAULT_CONFIG = {
     "auto_snapshot_enabled": True,
     "auto_snapshot_label": "person",
     "auto_snapshot_cooldown_seconds": 30.0,
+    "network_camera": deepcopy(DEFAULT_SETTINGS),
 }
 
 ALLOWED_KEYS = set(DEFAULT_CONFIG.keys())
@@ -75,6 +78,26 @@ def load_config(path=None):
 def env_overrides(base=None):
     base = base or DEFAULT_CONFIG
     overrides = {}
+    camera_settings = deepcopy(base.get("network_camera", DEFAULT_SETTINGS))
+    for variable, key in (("CYBERVISUAL_NETWORK_CAMERA", "enabled"),
+                          ("CYBERVISUAL_ADVERTISE_HOST", "advertise_host"),
+                          ("CYBERVISUAL_DISCOVERY_INTERFACE", "discovery_interface"),
+                          ("CYBERVISUAL_DISCOVERY_ENABLED", "discovery_enabled"),
+                          ("CYBERVISUAL_RTSP_PORT", "rtsp_port"),
+                          ("CYBERVISUAL_ENCODER", "encoder"),
+                          ("CYBERVISUAL_PTZ_DRIVER", "ptz_driver")):
+        if variable in os.environ:
+            if isinstance(DEFAULT_SETTINGS[key], bool):
+                camera_settings[key] = _env_bool(variable, DEFAULT_SETTINGS[key])
+            elif isinstance(DEFAULT_SETTINGS[key], int):
+                try:
+                    camera_settings[key] = int(os.environ[variable])
+                except ValueError:
+                    raise ConfigValidationError("%s must be an integer." % variable)
+            else:
+                camera_settings[key] = os.environ[variable]
+    if camera_settings != base.get("network_camera"):
+        overrides["network_camera"] = camera_settings
     if "CYBERVISUAL_CAMERA_INDEX" in os.environ:
         overrides["camera_index"] = _env_int("CYBERVISUAL_CAMERA_INDEX", DEFAULT_CONFIG["camera_index"])
     if "CYBERVISUAL_CAMERA_DEVICE" in os.environ:
@@ -132,18 +155,27 @@ def merge_config(current, update):
         raise ConfigValidationError("Unsupported config key(s): %s" % ", ".join(sorted(unknown)))
     merged = deepcopy(current)
     for key, value in update.items():
-        merged[key] = value
+        if key == "network_camera" and isinstance(value, dict):
+            merged[key] = dict(merged.get(key, DEFAULT_SETTINGS), **value)
+        else:
+            merged[key] = value
     return validate_config(merged)
 
 
 def validate_config(config):
     normalized = deepcopy(config)
+    try:
+        normalized["network_camera"] = validate_settings(normalized.get("network_camera", {}))
+    except ValueError as exc:
+        raise ConfigValidationError(str(exc))
     resolution = normalized.get("resolution")
     if not isinstance(resolution, dict):
         raise ConfigValidationError("resolution must be an object with width and height.")
     width = _validate_int("resolution.width", resolution.get("width"), 160, 3840)
     height = _validate_int("resolution.height", resolution.get("height"), 120, 2160)
     normalized["resolution"] = {"width": width, "height": height}
+    if normalized["network_camera"]["enabled"] and (width % 2 or height % 2):
+        raise ConfigValidationError("H.264 network video requires an even resolution width and height.")
     normalized["camera_index"] = _validate_int("camera_index", normalized.get("camera_index"), 0, 32)
     normalized["camera_fps"] = _validate_int("camera_fps", normalized.get("camera_fps"), 1, 240)
 

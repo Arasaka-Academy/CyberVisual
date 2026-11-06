@@ -1,10 +1,11 @@
 import json
 import os
 import time
+import threading
 
 import numpy as np
 
-from cybervisual.detector import BaseDetector
+from cybervisual.detector import BaseDetector, MockDetector
 from cybervisual.config import DEFAULT_CONFIG
 from cybervisual.runtime import RuntimeService
 
@@ -164,3 +165,124 @@ class PersonDetector(BaseDetector):
 
     def detect(self, frame, config):
         return [PERSON_DETECTION]
+
+
+def test_slow_inference_does_not_block_raw_capture(tmp_path, monkeypatch):
+    monkeypatch.setenv("CYBERVISUAL_CAPTURE_DIR", str(tmp_path))
+    entered, release = threading.Event(), threading.Event()
+
+    class SlowDetector(BaseDetector):
+        def detect(self, frame, config):
+            entered.set()
+            release.wait(2)
+            return []
+
+    runtime = RuntimeService(config=dict(DEFAULT_CONFIG, auto_snapshot_enabled=False),
+                             frame_source=FakeFrameSource(), detector=SlowDetector())
+    runtime.start()
+    try:
+        assert entered.wait(1)
+        version = runtime.raw_buffer.snapshot()["version"]
+        deadline = time.monotonic() + 1
+        while time.monotonic() < deadline and runtime.raw_buffer.snapshot()["version"] <= version + 2:
+            time.sleep(0.01)
+        assert runtime.raw_buffer.snapshot()["version"] > version + 2
+    finally:
+        release.set()
+        runtime.stop()
+
+
+def test_capture_failure_discards_inference_finishing_after_disconnect(monkeypatch):
+    from cybervisual import runtime as module
+
+    encoding, release, disconnected = threading.Event(), threading.Event(), threading.Event()
+    original_encode = module.encode_jpeg
+
+    def slow_encode(frame, quality):
+        if threading.current_thread().name == "cybervisual-runtime":
+            encoding.set()
+            release.wait(2)
+        return original_encode(frame, quality)
+
+    class DisconnectingSource(FakeFrameSource):
+        def read(self):
+            if disconnected.is_set():
+                raise RuntimeError("Camera disconnected")
+            return super().read()
+
+    monkeypatch.setattr(module, "encode_jpeg", slow_encode)
+    runtime = RuntimeService(config=dict(DEFAULT_CONFIG, retry_interval_seconds=3, auto_snapshot_enabled=False),
+                             frame_source=DisconnectingSource(), detector=PersonDetector())
+    runtime.start()
+    try:
+        assert encoding.wait(1)
+        disconnected.set()
+        deadline = time.monotonic() + 1
+        while time.monotonic() < deadline and runtime.raw_buffer.snapshot()["valid"]:
+            time.sleep(0.01)
+        assert not runtime.raw_buffer.snapshot()["valid"]
+        release.set()
+        time.sleep(0.15)
+        assert not runtime.buffer.snapshot()["valid"]
+        assert not runtime.events.status()["online"]
+        assert not runtime.events.status()["presence"]["person"]
+    finally:
+        release.set()
+        runtime.stop()
+
+
+def test_automatic_mock_fallback_on_real_camera_does_not_publish_ai_events():
+    class CameraSource(FakeFrameSource):
+        def read(self):
+            return True, np.zeros((240, 320, 3), dtype=np.uint8)
+
+    runtime = RuntimeService(config=dict(DEFAULT_CONFIG, source="camera", detector_backend="auto",
+                                         auto_snapshot_enabled=False),
+                             frame_source=CameraSource(), detector=MockDetector())
+    runtime.start()
+    try:
+        assert runtime.buffer.wait_for_frame(timeout=1)
+        events = runtime.events.status()
+        assert not events["online"]
+        assert not events["presence"]["person"]
+        assert "mock" in events["last_error"].lower()
+    finally:
+        runtime.stop()
+
+
+def test_stop_marks_camera_offline_and_invalidates_stream_buffers():
+    runtime = RuntimeService(config=dict(DEFAULT_CONFIG, auto_snapshot_enabled=False),
+                             frame_source=FakeFrameSource(), detector=PersonDetector())
+    runtime.start()
+    assert runtime.buffer.wait_for_frame(timeout=1)
+    runtime.stop()
+    assert not runtime.status()["camera"]["connected"]
+    assert not runtime.raw_buffer.snapshot()["valid"]
+    assert not runtime.buffer.snapshot()["valid"]
+
+
+def test_model_change_during_loading_cannot_install_previous_detector(monkeypatch):
+    loading, release = threading.Event(), threading.Event()
+    calls = []
+
+    def build(config):
+        calls.append(config["model_path"])
+        if len(calls) == 1:
+            loading.set()
+            release.wait(2)
+        return PersonDetector()
+
+    monkeypatch.setattr("cybervisual.runtime.build_detector", build)
+    runtime = RuntimeService(config=dict(DEFAULT_CONFIG, auto_snapshot_enabled=False), frame_source=FakeFrameSource())
+    runtime.start()
+    try:
+        assert loading.wait(1)
+        runtime.update_config({"model_path": "replacement.engine"})
+        release.set()
+        deadline = time.monotonic() + 1
+        while time.monotonic() < deadline and len(calls) < 2:
+            time.sleep(0.01)
+        assert calls == [DEFAULT_CONFIG["model_path"], "replacement.engine"]
+    finally:
+        release.set()
+        runtime.stop()

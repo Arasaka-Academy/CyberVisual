@@ -21,6 +21,14 @@ if command -v apt-get >/dev/null 2>&1; then
     python3-pip \
     python3-venv \
     python3-opencv \
+    python3-gi \
+    python3-gst-1.0 \
+    gir1.2-gst-rtsp-server-1.0 \
+    gstreamer1.0-tools \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
     v4l-utils
 fi
 
@@ -51,6 +59,7 @@ else
 fi
 
 if [ "$INSTALL_SYSTEMD" = "1" ]; then
+  "${SUDO[@]}" install -d -m 700 /etc/cybervisual
   "${SUDO[@]}" cp "$ROOT_DIR/deploy/systemd/$SERVICE_NAME" "/etc/systemd/system/$SERVICE_NAME"
   "${SUDO[@]}" systemctl daemon-reload
   if [ "$ENABLE_SYSTEMD" = "1" ]; then

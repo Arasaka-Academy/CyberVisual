@@ -17,9 +17,15 @@ Environment=CYBERVISUAL_CAMERA_FOURCC=MJPG
 Environment=CYBERVISUAL_CAMERA_FPS=30
 Environment=CYBERVISUAL_DETECTOR=auto
 Environment=CYBERVISUAL_MODEL_PATH=models/yolov5n_fp16.engine
+StateDirectory=cybervisual
+StateDirectoryMode=0700
+Environment=CYBERVISUAL_STATE_DIR=/var/lib/cybervisual
+EnvironmentFile=-/etc/cybervisual/camera.env
 ExecStart=/opt/cybervisual/scripts/run_backend.sh
 Restart=always
 RestartSec=3
+TimeoutStopSec=15
+KillSignal=SIGTERM
 
 [Install]
 WantedBy=multi-user.target
