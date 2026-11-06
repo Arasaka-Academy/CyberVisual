@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import App from "../src/App";
+import App from "../src/app/App";
 
 const statusPayload = {
   health: "running",
@@ -75,6 +75,8 @@ describe("App", () => {
   });
 
   afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -138,6 +140,92 @@ describe("App", () => {
     expect(screen.getByText("0 saved")).toBeInTheDocument();
   });
 
+  it("polls runtime data together every second and stops after unmount", async () => {
+    vi.useFakeTimers();
+    const view = render(<App />);
+    await act(async () => {});
+
+    expect(screen.getByText("RUNNING")).toBeInTheDocument();
+    expect(requestCount("/api/status")).toBe(1);
+    expect(requestCount("/api/detections/latest")).toBe(1);
+    expect(requestCount("/api/config")).toBe(1);
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+    expect(requestCount("/api/status")).toBe(2);
+    expect(requestCount("/api/detections/latest")).toBe(2);
+    expect(requestCount("/api/config")).toBe(1);
+
+    view.unmount();
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
+    expect(requestCount("/api/status")).toBe(2);
+    expect(requestCount("/api/detections/latest")).toBe(2);
+  });
+
+  it("retains the last complete runtime frame on polling failure and recovers", async () => {
+    vi.useFakeTimers();
+    render(<App />);
+    await act(async () => {});
+
+    const previousFetch = fetch;
+    let unavailable = true;
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/api/status")) return jsonResponse({ ...statusPayload, fps: 20.5 });
+      if (String(input).includes("/api/detections/latest")) {
+        return unavailable ? Promise.reject(new Error("Detection service unavailable")) : jsonResponse({ ...detectionsPayload, detections: [] });
+      }
+      return previousFetch(input, init);
+    }));
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+    expect(screen.getByText("Detection service unavailable")).toBeInTheDocument();
+    expect(screen.getByText("11.4")).toBeInTheDocument();
+    expect(screen.queryByText("20.5")).not.toBeInTheDocument();
+    expect(screen.getAllByText("person").length).toBeGreaterThan(0);
+
+    unavailable = false;
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+    expect(screen.queryByText("Detection service unavailable")).not.toBeInTheDocument();
+    expect(screen.getByText("20.5")).toBeInTheDocument();
+    expect(screen.getByText("No objects above threshold")).toBeInTheDocument();
+    expect(screen.getByText("No classes detected")).toBeInTheDocument();
+  });
+
+  it("saves a snapshot and shows its filename", async () => {
+    render(<App />);
+    await screen.findByText("RUNNING");
+    fireEvent.click(screen.getByLabelText("Save snapshot"));
+
+    expect(await screen.findByText("Snapshot saved: snapshot.jpg")).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/snapshot", { method: "POST" });
+  });
+
+  it("shows the server error when a snapshot cannot be saved", async () => {
+    const previousFetch = fetch;
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/api/snapshot")) return jsonResponse({ error: "Snapshot storage unavailable" }, 503);
+      return previousFetch(input, init);
+    }));
+    render(<App />);
+    await screen.findByText("RUNNING");
+    fireEvent.click(screen.getByLabelText("Save snapshot"));
+
+    expect(await screen.findByText("Snapshot storage unavailable")).toBeInTheDocument();
+    expect(screen.queryByText("Snapshot saved: snapshot.jpg")).not.toBeInTheDocument();
+  });
+
+  it("refreshes the stream URL and displays an offline placeholder on image failure", async () => {
+    render(<App />);
+    await screen.findByText("RUNNING");
+    const stream = screen.getByAltText("Live YOLO detection stream");
+    expect(stream).toHaveAttribute("src", "/stream.mjpg?view=0");
+
+    fireEvent.click(screen.getByLabelText("Reload stream"));
+    expect(stream).toHaveAttribute("src", "/stream.mjpg?view=1");
+    fireEvent.error(stream);
+    expect(screen.getByText("Stream offline")).toBeInTheDocument();
+    expect(screen.queryByAltText("Live YOLO detection stream")).not.toBeInTheDocument();
+  });
+
   it("shows connection addresses and identifies simulated PTZ", async () => {
     const previousFetch = fetch;
     vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
@@ -189,6 +277,10 @@ describe("App", () => {
     expect(screen.getByText("rtsp://192.168.1.20:8554/raw")).toBeInTheDocument();
   });
 });
+
+function requestCount(path: string) {
+  return vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes(path)).length;
+}
 
 function putConfigRequest() {
   const fetchMock = fetch as unknown as { mock: { calls: Array<[RequestInfo | URL, RequestInit?]> } };

@@ -1,0 +1,30 @@
+import type { RuntimeConfig } from "./types";
+
+export const defaultConfig: RuntimeConfig = {
+  camera_index: 0,
+  camera_device: "",
+  camera_fourcc: "MJPG",
+  camera_fps: 30,
+  source: "camera",
+  sample_video: "",
+  resolution: { width: 640, height: 480 },
+  confidence: 0.35,
+  iou: 0.45,
+  class_allowlist: [],
+  model_path: "models/yolov8n_fp16.engine",
+  detector_backend: "auto",
+  jpeg_quality: 78,
+  retry_interval_seconds: 2,
+  auto_snapshot_enabled: true,
+  auto_snapshot_label: "person",
+  auto_snapshot_cooldown_seconds: 30
+};
+
+export function normalizeConfig(config: RuntimeConfig): RuntimeConfig {
+  return {
+    ...defaultConfig,
+    ...config,
+    resolution: { ...defaultConfig.resolution, ...config.resolution },
+    class_allowlist: config.class_allowlist || []
+  };
+}

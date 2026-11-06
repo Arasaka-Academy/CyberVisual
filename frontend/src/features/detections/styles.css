@@ -1,0 +1,117 @@
+.detection-panel,
+.class-mix-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.detection-list {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 9px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.detection-row {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.detection-row:hover {
+  border-color: rgba(118, 185, 0, 0.35);
+  background: rgba(118, 185, 0, 0.07);
+}
+
+.detection-row h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.detection-row p {
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.detection-row strong {
+  color: var(--accent);
+}
+
+.class-token {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 92px;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.class-bars {
+  display: grid;
+  align-content: start;
+  flex: 1;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.class-bar {
+  display: grid;
+  grid-template-columns: 88px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.class-bar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.bar-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bar-track div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--blue));
+}
+
+.detection-list,
+.class-bars {
+  scrollbar-width: none;
+}
+
+.detection-list::-webkit-scrollbar,
+.class-bars::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}

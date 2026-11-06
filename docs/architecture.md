@@ -53,9 +53,43 @@ Detector backends:
 
 ## Frontend
 
-The dashboard is a single React/Vite app. It reads `/stream.mjpg` through an `img` element and polls `/api/status`, `/api/detections/latest`, and `/api/config`. Runtime controls submit partial updates through `PUT /api/config`.
+The dashboard is a single React/Vite app. It reads `/stream.mjpg` through an `img` element, fetches `/api/status` and `/api/detections/latest` together every second, and loads `/api/config` once on mount. Runtime controls submit updates through `PUT /api/config`.
 
 The UI follows a control-console model: large video workspace, compact status bar, detection inspector, class distribution, and runtime settings drawer.
+
+### Source organization
+
+`frontend/src/main.tsx` mounts `app/App.tsx`, which composes the dashboard. The
+`app/useDashboard.ts` hook coordinates paired status/detection polling, initial
+configuration loading, saves, and global messages. A failed polling pair retains
+the previous complete result; unmounting stops the interval and ignores pending
+poll results.
+
+| Module | Responsibility |
+| --- | --- |
+| `app/` | Dashboard composition, header, global notifications, and cross-feature coordination |
+| `features/runtime/` | Runtime status API/types/defaults, compatibility normalization, status indicators, metrics, and system panel |
+| `features/stream/` | MJPEG preview, HUD, offline placeholder, stream URL and refresh state |
+| `features/detections/` | Detection API/types, object list, class distribution, and snapshot requests |
+| `features/settings/` | Configuration API/types/defaults, compatibility normalization, and settings drawer |
+| `features/network-camera/` | Network camera configuration/status types and ONVIF/RTSP/PTZ connection panel |
+| `shared/` | HTTP JSON transport, `VITE_API_BASE`, theme, and common styles |
+
+Feature APIs own their endpoints and import only the shared HTTP transport.
+Cross-feature domain references use type-only imports; visual composition and
+request coordination stay in `app/`. Single-use presentation helpers stay beside
+their components rather than becoming global utilities.
+
+`frontend/src/styles.css` is the sole stylesheet entry point. It imports base and
+feature styles before responsive overrides, then network camera overrides last.
+Feature-specific media queries live alongside the corresponding components;
+shared panel, button, and definition-list rules stay in `shared/`. Keep this
+ordering when adding styles, since equally specific selectors rely on the
+cascade. Components do not import styles independently.
+
+Run `npm test` and `npm run build` from `frontend/` after changes. The build also
+refreshes the committed `frontend/dist` assets used by Jetson installations that
+cannot rebuild the frontend locally.
 
 ## Failure Modes
 

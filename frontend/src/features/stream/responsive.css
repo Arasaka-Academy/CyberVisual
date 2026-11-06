@@ -1,0 +1,53 @@
+@media (prefers-reduced-motion: reduce) {
+  .video-stage,
+.video-scanline {
+    animation: none;
+  }
+}
+
+@media (max-width: 820px) {
+
+  .video-hud {
+    min-height: 28px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
+  .video-hud.top-left {
+    top: 9px;
+    left: 9px;
+  }
+
+  .video-hud.bottom-right {
+    right: 9px;
+    bottom: 9px;
+  }
+
+  .video-tech-tag {
+    top: 9px;
+    right: 9px;
+    min-height: 30px;
+    padding: 4px 7px;
+  }
+
+  .video-tech-tag span {
+    font-size: 9px;
+  }
+
+  .video-tech-tag strong {
+    font-size: 7px;
+  }
+
+  .compute-rail {
+    display: none;
+  }
+
+  .target-frame {
+    inset: 48px 28px 42px;
+  }
+
+  .frame-corner {
+    width: 18px;
+    height: 18px;
+  }
+}

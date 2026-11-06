@@ -1,0 +1,6 @@
+@media (max-width: 820px) {
+
+  .settings-drawer .resolution-row {
+    grid-template-columns: 1fr;
+  }
+}
