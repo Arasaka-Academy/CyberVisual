@@ -37,7 +37,9 @@ class RuntimeService(object):
 
     def start(self):
         with self._lock:
-            if self._thread and self._thread.is_alive():
+            if any(worker and worker.is_alive() for worker in (self._thread, self._capture_thread)):
+                if self._stop_event.is_set():
+                    raise RuntimeError("Runtime workers are still stopping; retry after the camera and detector return.")
                 return
             self._stop_event.clear()
             self._capture_thread = threading.Thread(target=self._capture_loop, name="cybervisual-capture")

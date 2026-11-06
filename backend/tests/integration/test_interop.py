@@ -85,14 +85,107 @@ def authenticated_uri(uri):
     return uri.replace("rtsp://", "rtsp://viewer:test-password@", 1)
 
 
-def decode(uri, transport, frames=3):
+def decode(uri, transport, frames=3, width=320, height=240):
     result = subprocess.run([
         "ffmpeg", "-v", "error", "-rtsp_transport", transport, "-i", authenticated_uri(uri),
         "-frames:v", str(frames), "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1",
     ], capture_output=True, timeout=20)
     assert result.returncode == 0, result.stderr.decode(errors="replace")
-    assert len(result.stdout) == 320 * 240 * 3 * frames
+    assert len(result.stdout) == width * height * 3 * frames
     return result.stdout
+
+
+def test_even_resolution_with_unaligned_rgb_rows_decodes_both_profiles(camera, monkeypatch):
+    runtime, client, base = camera
+    frame = np.zeros((242, 322, 3), dtype=np.uint8)
+    frame[:, :161] = [210, 40, 20]
+    frame[:, 161:] = [10, 170, 60]
+
+    class ColorSource:
+        def open(self):
+            pass
+
+        def read(self):
+            return True, frame.copy()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("cybervisual.runtime.build_frame_source", lambda config: ColorSource())
+    response = requests.put(base + "/api/config", json={"resolution": {"width": 322, "height": 242}}, timeout=5)
+    assert response.status_code == 200
+    for profile in ("raw", "annotated"):
+        frames = decode(stream_uri(client, profile), "tcp", width=322, height=242)
+        pixels = np.frombuffer(frames, dtype=np.uint8).reshape(3, 242, 322, 3)
+        # Stay away from the detector's overlays and color boundaries.
+        left = pixels[:, 180:220, 20:60].mean(axis=(0, 1, 2))
+        right = pixels[:, 180:220, 260:300].mean(axis=(0, 1, 2))
+        assert np.allclose(left, [210, 40, 20], atol=12), left
+        assert np.allclose(right, [10, 170, 60], atol=12), right
+
+
+def test_abandoned_rtsp_session_expires_without_a_teardown(camera):
+    runtime, client, base = camera
+    rtsp = runtime.network_camera._rtsp
+    pool = rtsp._server.get_session_pool()
+    process = subprocess.Popen([
+        "ffmpeg", "-v", "error", "-rtsp_transport", "udp", "-i", authenticated_uri(stream_uri(client, "raw")),
+        "-f", "null", "-",
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline and not pool.get_n_sessions():
+            time.sleep(0.02)
+        assert pool.get_n_sessions() == 1
+        from gi.repository import GstRtspServer
+
+        def expire_session(pool, session, data):
+            session.set_timeout(1)
+            return GstRtspServer.RTSPFilterResult.KEEP
+
+        pool.filter(expire_session, None)
+        process.kill()
+        process.wait(timeout=5)
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline and pool.get_n_sessions():
+            time.sleep(0.02)
+        assert pool.get_n_sessions() == 0
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline and rtsp.status()["streams"]["raw"]["active"]:
+            time.sleep(0.02)
+        assert not rtsp.status()["streams"]["raw"]["active"]
+    finally:
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=5)
+
+
+def test_encoder_bus_errors_are_visible_in_output_status(camera, monkeypatch):
+    from cybervisual.network_camera.rtsp import RTSPServer
+
+    original_pipeline = RTSPServer._pipeline
+
+    def failing_pipeline(server, profile):
+        pipeline = original_pipeline(server, profile)
+        return pipeline.replace("! videoconvert", "! identity error-after=2 ! videoconvert") if profile == "raw" else pipeline
+
+    runtime, client, base = camera
+    monkeypatch.setattr(RTSPServer, "_pipeline", failing_pipeline)
+    runtime.update_config({"network_camera": {"raw_bitrate_kbps": 1500}})
+    process = subprocess.Popen([
+        "ffmpeg", "-v", "error", "-rtsp_transport", "tcp", "-i", authenticated_uri(stream_uri(client, "raw")),
+        "-frames:v", "3", "-f", "null", "-",
+    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline and not runtime.network_camera.status()["profiles"][0].get("last_error"):
+            time.sleep(0.02)
+        assert runtime.network_camera.status()["profiles"][0]["last_error"]
+    finally:
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=5)
+    decode(stream_uri(client, "annotated"), "tcp")
 
 
 @pytest.mark.parametrize("transport", ["tcp", "udp"])

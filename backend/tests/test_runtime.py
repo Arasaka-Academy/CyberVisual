@@ -4,6 +4,7 @@ import time
 import threading
 
 import numpy as np
+import pytest
 
 from cybervisual.detector import BaseDetector, MockDetector
 from cybervisual.config import DEFAULT_CONFIG
@@ -259,6 +260,48 @@ def test_stop_marks_camera_offline_and_invalidates_stream_buffers():
     assert not runtime.status()["camera"]["connected"]
     assert not runtime.raw_buffer.snapshot()["valid"]
     assert not runtime.buffer.snapshot()["valid"]
+
+
+def test_restart_waits_for_a_capture_worker_that_outlives_stop(monkeypatch):
+    entered, release = threading.Event(), threading.Event()
+
+    class BlockedSource(FakeFrameSource):
+        def read(self):
+            entered.set()
+            release.wait(5)
+            return super().read()
+
+    runtime = RuntimeService(config=dict(DEFAULT_CONFIG, auto_snapshot_enabled=False),
+                             frame_source=BlockedSource(), detector=PersonDetector())
+    runtime.start()
+    capture = runtime._capture_thread
+    try:
+        assert entered.wait(1)
+        # Model a native camera read that outlives the bounded stop join.
+        with monkeypatch.context() as patch:
+            patch.setattr(capture, "join", lambda timeout=None: None)
+            runtime.stop()
+        assert capture.is_alive()
+        assert not runtime._thread.is_alive()
+        with pytest.raises(RuntimeError, match="stopping"):
+            runtime.start()
+        assert runtime._stop_event.is_set()
+        assert runtime._capture_thread is capture
+    finally:
+        release.set()
+        capture.join(timeout=2)
+        runtime.stop()
+
+    class ReopenedSource(FakeFrameSource):
+        def open(self):
+            pass
+
+    monkeypatch.setattr("cybervisual.runtime.build_frame_source", lambda config: ReopenedSource())
+    runtime.start()
+    try:
+        assert runtime.raw_buffer.wait_for_frame(timeout=1)
+    finally:
+        runtime.stop()
 
 
 def test_model_change_during_loading_cannot_install_previous_detector(monkeypatch):

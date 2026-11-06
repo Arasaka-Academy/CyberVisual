@@ -8,10 +8,13 @@ from PIL import Image
 class RTSPServer(object):
     """One shared GStreamer media factory (and encoder) per video profile."""
 
+    _media_type = None
+
     def __init__(self, runtime, settings, credentials):
         self.runtime, self.settings, self.credentials = runtime, settings, credentials
         self.encoder = None
         self._server = self._loop = self._context = self._source = None
+        self._cleanup_source = None
         self._thread = None
         self._sessions = []
         self._lock = threading.RLock()
@@ -29,6 +32,15 @@ class RTSPServer(object):
             raise RuntimeError("Install Python GI and GStreamer RTSP Server system packages.")
         self.Gst, self.GLib, self.GstRtspServer = Gst, GLib, GstRtspServer
         Gst.init(None)
+        if RTSPServer._media_type is None:
+            class ObservedRTSPMedia(GstRtspServer.RTSPMedia):
+                def do_handle_message(self, message):
+                    callback = getattr(self, "_camera_error_callback", None)
+                    if message.type == Gst.MessageType.ERROR and callback:
+                        callback()
+                    return GstRtspServer.RTSPMedia.do_handle_message(self, message)
+
+            RTSPServer._media_type = ObservedRTSPMedia
         requested = self.settings["encoder"]
         hardware = bool(Gst.ElementFactory.find("nvv4l2h264enc") and Gst.ElementFactory.find("nvvidconv"))
         self.encoder = "nvv4l2h264enc" if requested != "software" and hardware else "x264enc"
@@ -54,6 +66,7 @@ class RTSPServer(object):
             probe = Gst.parse_launch(pipeline)
             probe.set_state(Gst.State.NULL)
             factory = GstRtspServer.RTSPMediaFactory.new()
+            factory.set_media_gtype(RTSPServer._media_type)
             factory.set_launch(pipeline)
             factory.set_shared(True)
             factory.set_protocols(GstRtsp.RTSPLowerTrans.UDP | GstRtsp.RTSPLowerTrans.TCP)
@@ -68,6 +81,16 @@ class RTSPServer(object):
             self.stop()
             raise RuntimeError("Unable to bind the configured RTSP port.")
         self._source = self._context.find_source_by_id(source_id)
+        pool = self._server.get_session_pool()
+
+        def cleanup_sessions(*args):
+            pool.cleanup()
+            return True
+
+        # GstRTSPServer does not expire abandoned sessions on its own.
+        self._cleanup_source = GLib.timeout_source_new_seconds(1)
+        self._cleanup_source.set_callback(cleanup_sessions)
+        self._cleanup_source.attach(self._context)
         self._thread = threading.Thread(target=self._run, name="cybervisual-rtsp")
         self._thread.daemon = True
         self._thread.start()
@@ -102,16 +125,15 @@ class RTSPServer(object):
         source.connect("need-data", lambda *args: session["demand"].set())
         source.connect("enough-data", lambda *args: session["demand"].clear())
         media.connect("unprepared", lambda *args: session["stop"].set())
-        bus = media.get_element().get_bus()
-        bus.add_signal_watch()
 
-        def on_error(bus, message):
+        def on_error():
             with self._lock:
                 self._errors[profile] = "H.264 media pipeline failed. Check device GStreamer logs."
             session["stop"].set()
 
-        bus.connect("message::error", on_error)
-        session["bus"] = bus
+        # The media bin's initial bus is replaced when GstRTSPMedia prepares its
+        # pipeline. Observe its message handler and preserve the parent handler.
+        media._camera_error_callback = on_error
         with self._lock:
             self._sessions.append(session)
             self._errors.pop(profile, None)
@@ -125,6 +147,8 @@ class RTSPServer(object):
         buffer = self.runtime.raw_buffer if profile == "raw" else self.runtime.buffer
         config = self.runtime.get_config()
         width, height = config["resolution"]["width"], config["resolution"]["height"]
+        row_bytes = width * 3
+        stride = (row_bytes + 3) & ~3
         fps = min(config["camera_fps"], self.settings[profile + "_fps"])
         version, first_stamp, last_pts = None, None, -1
         try:
@@ -140,12 +164,19 @@ class RTSPServer(object):
                 if frame.shape[:2] != (height, width):
                     resampling = getattr(Image, "Resampling", Image)
                     frame = np.asarray(Image.fromarray(frame).resize((width, height), resampling.BILINEAR))
-                payload = np.ascontiguousarray(frame, dtype=np.uint8).tobytes()
+                if stride == row_bytes:
+                    payload = np.ascontiguousarray(frame, dtype=np.uint8).tobytes()
+                else:
+                    # GStreamer RGB caps imply a four-byte aligned row stride.
+                    rows = np.zeros((height, stride), dtype=np.uint8)
+                    rows[:, :row_bytes] = np.asarray(frame, dtype=np.uint8).reshape(height, row_bytes)
+                    payload = rows.tobytes()
                 gst_buffer = self.Gst.Buffer.new_allocate(None, len(payload), None)
                 gst_buffer.fill(0, payload)
+                stamp = time.monotonic()
                 if first_stamp is None:
-                    first_stamp = item["frame_ts"]
-                pts = max(last_pts + 1, int((item["frame_ts"] - first_stamp) * self.Gst.SECOND))
+                    first_stamp = stamp
+                pts = max(last_pts + 1, int((stamp - first_stamp) * self.Gst.SECOND))
                 gst_buffer.pts = gst_buffer.dts = pts
                 gst_buffer.duration = self.Gst.SECOND // fps
                 last_pts = pts
@@ -156,7 +187,7 @@ class RTSPServer(object):
                 session["stop"].wait(max(0, 1.0 / fps - (time.monotonic() - paced)))
         finally:
             source.emit("end-of-stream")
-            session["bus"].remove_signal_watch()
+            session["media"]._camera_error_callback = None
             with self._lock:
                 if session in self._sessions:
                     self._sessions.remove(session)
@@ -169,6 +200,9 @@ class RTSPServer(object):
                 for profile in ("raw", "annotated")}}
 
     def stop(self):
+        if self._cleanup_source:
+            self._cleanup_source.destroy()
+            self._cleanup_source = None
         with self._lock:
             sessions = list(self._sessions)
         for session in sessions:
