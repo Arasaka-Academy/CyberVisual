@@ -1,0 +1,14 @@
+/* Generated from packages/react/src/modal-surface.module.css. Regenerate in CyberUI with pnpm registry:build; after installation, edit this file freely. */
+@layer theme, base, components, utilities;
+@reference './tailwind-theme.css';
+
+@layer components {
+.overlay { @apply tw:fixed tw:inset-[0] tw:z-[100] tw:grid tw:place-items-center tw:p-cyber-2xl; background: rgb(0 0 0 / .76); @apply tw:overflow-y-auto tw:animate-cyber-overlay; }
+.modal { @apply tw:w-[min(520px,100%)] tw:max-h-[calc(100dvh_-_48px)] tw:overflow-y-auto; background: var(--cyber-bg); border: 2px solid var(--cyber-ink); box-shadow: 6px 6px 0 var(--cyber-line); outline: 0; @apply tw:animate-cyber-lift; }
+.dialog { @apply tw:p-[26px] tw:text-cyber-ink; outline: 0; }
+.dialogHead { @apply tw:flex tw:items-start tw:justify-between tw:gap-[16px] tw:mb-[20px]; }
+.dialogHead h2 { @apply tw:m-[0] tw:text-[length:22px]; }
+.drawerOverlay { justify-items: end; @apply tw:p-[0]; }
+.drawer { @apply tw:h-[100dvh] tw:max-h-[100dvh] tw:w-[min(440px,100%)]; border-right: 0; }
+@media(max-width:600px) { .dialog { @apply tw:p-[20px]; } .overlay { @apply tw:p-[16px]; } .drawerOverlay { @apply tw:p-[0]; } .modal { @apply tw:max-h-[calc(100dvh_-_32px)]; } .drawer { @apply tw:max-h-[100dvh]; } }
+}

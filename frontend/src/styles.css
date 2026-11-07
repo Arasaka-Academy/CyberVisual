@@ -1,20 +1,11 @@
-/* Base and feature rules precede their responsive overrides. */
 @import "./shared/base.css";
 @import "./shared/components.css";
 @import "./app/styles.css";
 @import "./features/runtime/styles.css";
 @import "./features/stream/styles.css";
-@import "./features/detections/styles.css";
 @import "./features/ptz/styles.css";
+@import "./features/detections/styles.css";
 @import "./features/network-camera/styles.css";
 @import "./features/events/styles.css";
 @import "./features/settings/styles.css";
 @import "./shared/responsive.css";
-@import "./app/responsive.css";
-@import "./features/runtime/responsive.css";
-@import "./features/stream/responsive.css";
-@import "./features/detections/responsive.css";
-@import "./features/ptz/responsive.css";
-@import "./features/network-camera/responsive.css";
-@import "./features/events/responsive.css";
-@import "./features/settings/responsive.css";

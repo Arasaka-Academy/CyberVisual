@@ -1,3 +1,4 @@
+import { Input, Select } from "../../shared/controls";
 import { ConfigSection, ConfigUnavailable } from "./ConfigSection";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -6,6 +7,7 @@ import {
   LinkAction,
   Notice,
   Toggle,
+  Panel,
 } from "../../shared/components";
 import type { ConfigManager } from "../settings/useConfigManager";
 import type { RuntimeConfig } from "./types";
@@ -44,20 +46,14 @@ export default function Settings({
           warning="修改采集源或分辨率会重新打开视频源，短暂中断画面与 AI 分析。"
         >
           <div className="form-grid">
-            <Field label="输入来源">
-              <select
+            <Select label="输入来源"
                 value={config.source}
-                onChange={(event) =>
-                  set({ source: event.target.value as RuntimeConfig["source"] })
+                onChange={(value) =>
+                  set({ source: value as RuntimeConfig["source"] })
                 }
-              >
-                <option value="camera">物理摄像头</option>
-                <option value="synthetic">合成测试画面</option>
-                <option value="video">本地视频文件</option>
-              </select>
-            </Field>
+               options={[{"id":"camera","label":"物理摄像头"},{"id":"synthetic","label":"合成测试画面"},{"id":"video","label":"本地视频文件"}]} />
             <Field label="采集帧率（FPS）">
-              <input
+              <Input
                 type="number"
                 min={1}
                 max={240}
@@ -71,7 +67,7 @@ export default function Settings({
             {config.source === "camera" && (
               <>
                 <Field label="摄像头序号">
-                  <input
+                  <Input
                     type="number"
                     min={0}
                     max={32}
@@ -83,7 +79,7 @@ export default function Settings({
                   />
                 </Field>
                 <Field label="设备路径" help="可留空，使用摄像头序号">
-                  <input
+                  <Input
                     placeholder="例如 /dev/video0"
                     value={config.camera_device}
                     onChange={(event) =>
@@ -95,7 +91,7 @@ export default function Settings({
             )}
             {config.source === "video" && (
               <Field label="设备上的视频文件路径">
-                <input
+                <Input
                   required
                   value={config.sample_video}
                   onChange={(event) =>
@@ -105,7 +101,7 @@ export default function Settings({
               </Field>
             )}
             <Field label="画面宽度（px）" help="H.264 输出要求宽高为偶数">
-              <input
+              <Input
                 type="number"
                 min={160}
                 max={3840}
@@ -123,7 +119,7 @@ export default function Settings({
               />
             </Field>
             <Field label="画面高度（px）">
-              <input
+              <Input
                 type="number"
                 min={120}
                 max={2160}
@@ -145,7 +141,7 @@ export default function Settings({
             <summary>采集与预览高级参数</summary>
             <div className="form-grid">
               <Field label="摄像头 FourCC">
-                <input
+                <Input
                   maxLength={4}
                   value={config.camera_fourcc}
                   onChange={(event) =>
@@ -154,7 +150,7 @@ export default function Settings({
                 />
               </Field>
               <Field label="MJPEG 画质">
-                <input
+                <Input
                   type="number"
                   min={35}
                   max={95}
@@ -166,7 +162,7 @@ export default function Settings({
                 />
               </Field>
               <Field label="采集重试间隔（秒）">
-                <input
+                <Input
                   type="number"
                   min={0.1}
                   max={30}
@@ -188,31 +184,23 @@ export default function Settings({
           description="检测阈值与类别过滤同时应用于标注视频和 AI 事件"
         >
           <div className="form-grid">
-            <Field label="检测后端">
-              <select
+            <Select label="检测后端"
                 value={config.detector_backend}
-                onChange={(event) =>
+                onChange={(value) =>
                   set({
-                    detector_backend: event.target
-                      .value as RuntimeConfig["detector_backend"],
+                    detector_backend: value as RuntimeConfig["detector_backend"],
                   })
                 }
-              >
-                <option value="auto">自动选择</option>
-                <option value="tensorrt">TensorRT</option>
-                <option value="opencv">OpenCV</option>
-                <option value="mock">模拟检测</option>
-              </select>
-            </Field>
+               options={[{"id":"auto","label":"自动选择"},{"id":"tensorrt","label":"TensorRT"},{"id":"opencv","label":"OpenCV"},{"id":"mock","label":"模拟检测"}]} />
             <Field label="模型文件路径">
-              <input
+              <Input
                 required
                 value={config.model_path}
                 onChange={(event) => set({ model_path: event.target.value })}
               />
             </Field>
             <Field label="置信度阈值">
-              <input
+              <Input
                 type="number"
                 min={0}
                 max={1}
@@ -225,7 +213,7 @@ export default function Settings({
               />
             </Field>
             <Field label="IoU 阈值">
-              <input
+              <Input
                 type="number"
                 min={0}
                 max={1}
@@ -254,7 +242,7 @@ export default function Settings({
           />
           <div className="form-grid">
             <Field label="触发类别">
-              <input
+              <Input
                 required
                 value={config.auto_snapshot_label}
                 onChange={(event) =>
@@ -263,7 +251,7 @@ export default function Settings({
               />
             </Field>
             <Field label="冷却时间（秒）">
-              <input
+              <Input
                 type="number"
                 min={1}
                 max={3600}
@@ -290,22 +278,17 @@ export default function Settings({
             description="选择与 ONVIF 和浏览器共用的云台驱动"
             warning="切换驱动会重启协议输出，停止当前云台动作。"
           >
-            <Field label="驱动类型">
-              <select
+            <Select label="驱动类型"
                 value={config.network_camera!.ptz_driver}
-                onChange={(event) =>
+                onChange={(value) =>
                   set({
                     network_camera: {
-                      ptz_driver: event.target.value as
+                      ptz_driver: value as
                         "disabled" | "simulated",
                     },
                   })
                 }
-              >
-                <option value="disabled">禁用云台（生产默认）</option>
-                <option value="simulated">模拟驱动（仅验证位置变化）</option>
-              </select>
-            </Field>
+               options={[{"id":"disabled","label":"禁用云台（生产默认）"},{"id":"simulated","label":"模拟驱动（仅验证位置变化）"}]} />
             <p className="muted">
               当前模拟驱动不控制真实电机，也不会改变视频画面。真实驱动需在硬件确定后接入。
             </p>
@@ -319,7 +302,7 @@ export default function Settings({
         </div>
       </div>
       <aside className="settings-aside">
-        <section className="panel">
+        <Panel title="配置工作流" shape="brackets">
           <span className="eyebrow">配置工作流</span>
           <h2>按功能独立保存</h2>
           <p>
@@ -332,7 +315,7 @@ export default function Settings({
             <p>切换工作区会保留草稿；刷新或关闭页面前请保存。</p>
           </div>
           <LinkAction to="#/nvr">管理 ONVIF / RTSP 配置</LinkAction>
-        </section>
+        </Panel>
       </aside>
     </div>
   );
@@ -352,7 +335,7 @@ function ClassFilter({
       label="允许检测的类别"
       help="逗号分隔英文类别；留空表示全部，例如 person, car"
     >
-      <input
+      <Input
         value={text}
         onChange={(event) => setText(event.target.value)}
         onBlur={() =>

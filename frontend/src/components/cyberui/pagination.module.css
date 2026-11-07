@@ -1,0 +1,7 @@
+/* Generated from packages/react/src/pagination.module.css. Regenerate in CyberUI with pnpm registry:build; after installation, edit this file freely. */
+@layer theme, base, components, utilities;
+@reference './tailwind-theme.css';
+
+@layer components {
+.nav { @apply tw:flex tw:items-center tw:flex-wrap tw:gap-[8px]; }
+}

@@ -1,9 +1,11 @@
+import { Table } from "../../components/cyberui/table";
+import { Pagination } from "../../components/cyberui/pagination";
+import { Panel as CyberPanel } from "../../components/cyberui/panel";
+import { Select } from "../../shared/controls";
 import { useEffect, useState } from "react";
 import {
   Activity,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   User,
   Car,
 } from "lucide-react";
@@ -11,7 +13,6 @@ import { getRecentEvents } from "./api";
 import {
   Badge,
   Empty,
-  Field,
   Freshness,
   Notice,
   Panel,
@@ -77,7 +78,7 @@ export default function Events({
           { category: "person", label: "人物存在", icon: User },
           { category: "vehicle", label: "车辆存在", icon: Car },
         ].map(({ category: key, label, icon: Icon }) => (
-          <section className="presence-card" key={key}>
+          <CyberPanel shape="rail" className="presence-card" key={key}>
             <span className="service-icon">
               <Icon size={22} aria-hidden="true" />
             </span>
@@ -103,9 +104,9 @@ export default function Events({
             >
               {online ? "在线" : "未知"}
             </Badge>
-          </section>
+          </CyberPanel>
         ))}
-        <section className="presence-card">
+        <CyberPanel shape="rail" className="presence-card">
           <span className="service-icon">
             <Activity size={22} aria-hidden="true" />
           </span>
@@ -120,7 +121,7 @@ export default function Events({
             </h2>
             <p>{data?.status.last_error || "使用当前检测阈值与类别过滤配置"}</p>
           </div>
-        </section>
+        </CyberPanel>
       </div>
       <Panel
         title="近期事件"
@@ -130,108 +131,29 @@ export default function Events({
         }
       >
         <div className="event-filters">
-          <Field label="事件类别">
-            <select
-              value={category}
-              onChange={(event) => {
-                setCategory(event.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="all">全部事件</option>
-              <option value="person">人物</option>
-              <option value="vehicle">车辆</option>
-              <option value="analytics">分析源</option>
-            </select>
-          </Field>
+          <Select label="事件类别" value={category} onChange={(value) => { setCategory(value); setPage(0); }}
+            options={[{ id: "all", label: "全部事件" }, { id: "person", label: "人物" }, { id: "vehicle", label: "车辆" }, { id: "analytics", label: "分析源" }]} />
           <span className="muted">按时间倒序 · 每页 20 条</span>
         </div>
-        {!data ? (
-          <Empty title="正在读取事件记录…" />
-        ) : !events.length ? (
-          <Empty title="暂无匹配事件">
-            正常状态变化后会自动记录，无需保持页面打开。
-          </Empty>
+        {!data ? <Empty title="正在读取事件记录…" /> : !events.length ? (
+          <Empty title="暂无匹配事件">正常状态变化后会自动记录，无需保持页面打开。</Empty>
         ) : (
-          <div className="event-table">
-            <div className="event-table-heading" aria-hidden="true">
-              <span>时间</span>
-              <span>事件</span>
-              <span>来源</span>
-              <span>详情</span>
-            </div>
-            {events.slice(page * 20, page * 20 + 20).map((event) => (
-              <div className="event-record" key={event.id}>
-                <time dateTime={new Date(event.frame_ts * 1000).toISOString()}>
-                  {formatTime(event.frame_ts)}
-                </time>
-                <div className="event-name">
-                  <span
-                    className={`event-marker ${event.category === "analytics" && !event.state ? "bad" : event.state ? "good" : "neutral"}`}
-                    aria-hidden="true"
-                  />
-                  <strong>
-                    {event.category === "person"
-                      ? "人物"
-                      : event.category === "vehicle"
-                        ? "车辆"
-                        : ""}
-                    {eventLabel(event)}
-                  </strong>
-                </div>
-                <code>{event.source}</code>
-                <details className="event-details">
-                  <summary>
-                    <span>查看详情</span>
-                    <ChevronDown size={14} aria-hidden="true" />
-                  </summary>
-                  <dl>
-                    <div>
-                      <dt>UTC 时间</dt>
-                      <dd>{new Date(event.frame_ts * 1000).toISOString()}</dd>
-                    </div>
-                    <div>
-                      <dt>主题</dt>
-                      <dd>{event.topic}</dd>
-                    </div>
-                    <div>
-                      <dt>状态</dt>
-                      <dd>{String(event.state)}</dd>
-                    </div>
-                    <div>
-                      <dt>事件 ID</dt>
-                      <dd>{event.id}</dd>
-                    </div>
-                  </dl>
+          <Table label="近期 AI 事件" rows={events.slice(page * 20, page * 20 + 20)} className="events-table"
+            columns={[
+              { key: "frame_ts", label: "发生时间", render: (_value, event) => <time dateTime={new Date(event.frame_ts * 1000).toISOString()}>{formatTime(event.frame_ts)}</time> },
+              { key: "category", label: "事件", render: (_value, event) => <Badge tone={event.category === "analytics" && !event.state ? "bad" : event.state ? "good" : "neutral"}>{event.category === "person" ? "人物" : event.category === "vehicle" ? "车辆" : ""}{eventLabel(event)}</Badge> },
+              { key: "source", label: "来源", render: (_value, event) => <code>{event.source}</code> },
+              { key: "id", label: "详情", render: (_value, event) => (
+                <details className="event-details"><summary><span>查看详情</span><ChevronDown size={14} aria-hidden="true" /></summary>
+                  <dl><div><dt>UTC 时间</dt><dd>{new Date(event.frame_ts * 1000).toISOString()}</dd></div>
+                    <div><dt>主题</dt><dd>{event.topic}</dd></div><div><dt>状态</dt><dd>{String(event.state)}</dd></div>
+                    <div><dt>事件 ID</dt><dd>{event.id}</dd></div></dl>
                 </details>
-              </div>
-            ))}
-          </div>
+              ) },
+            ]} />
         )}
-        <div className="pagination">
-          <span>
-            第 {page + 1} / {pages} 页
-          </span>
-          <div className="button-row">
-            <button
-              className="button"
-              aria-label="上一页事件"
-              disabled={page === 0}
-              onClick={() => setPage((value) => value - 1)}
-            >
-              <ChevronLeft size={16} aria-hidden="true" />
-              上一页
-            </button>
-            <button
-              className="button"
-              aria-label="下一页事件"
-              disabled={page + 1 >= pages}
-              onClick={() => setPage((value) => value + 1)}
-            >
-              下一页
-              <ChevronRight size={16} aria-hidden="true" />
-            </button>
-          </div>
+        <div className="pagination"><span className="muted">第 {page + 1} / {pages} 页</span>
+          <Pagination page={page + 1} totalPages={pages} onChange={(value) => setPage(value - 1)} aria-label="事件分页" />
         </div>
       </Panel>
       <Panel

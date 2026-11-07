@@ -1,3 +1,4 @@
+import { Button, Input, HoldButton, Slider, Progress } from "../../shared/controls";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
@@ -47,7 +48,7 @@ export default function PTZPanel({
   const active = useRef(false);
   const mayMove = useRef(false);
   const generation = useRef(0);
-  const renewal = useRef<number>();
+  const renewal = useRef<number | undefined>(undefined);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const busyRef = useRef(false);
   const status = ptz.data;
@@ -162,7 +163,7 @@ export default function PTZPanel({
     y: number,
     Icon: typeof ArrowUp,
   ) => (
-    <button
+    <HoldButton
       type="button"
       className="direction-button"
       aria-label={label}
@@ -191,7 +192,7 @@ export default function PTZPanel({
       }}
     >
       <Icon size={21} aria-hidden="true" />
-    </button>
+    </HoldButton>
   );
 
   return (
@@ -236,7 +237,7 @@ export default function PTZPanel({
               {direction("向上移动", 0, 1, ArrowUp)}
               <span />
               {direction("向左移动", -1, 0, ArrowLeft)}
-              <button
+              <HoldButton
                 className="direction-button stop"
                 type="button"
                 aria-label="停止云台"
@@ -244,27 +245,23 @@ export default function PTZPanel({
                 onClick={() => release(true)}
               >
                 <Square size={18} aria-hidden="true" />
-              </button>
+              </HoldButton>
               {direction("向右移动", 1, 0, ArrowRight)}
               <span />
               {direction("向下移动", 0, -1, ArrowDown)}
               <span />
             </div>
             <div className="drive-options">
-              <Field label={`移动速度 ${Math.round(speed * 100)}%`}>
-                <input
-                  type="range"
-                  min=".05"
-                  max="1"
-                  step=".05"
+                <Slider label={`移动速度 ${Math.round(speed * 100)}%`}
+                  minValue={0.05}
+                  maxValue={1}
+                  step={0.05}
                   value={speed}
-                  disabled={!ready || holding || busy}
-                  onChange={(event) => setSpeed(Number(event.target.value))}
+                  isDisabled={!ready || holding || busy}
+                  onChange={setSpeed}
                 />
-              </Field>
-              <button
+              <Button
                 type="button"
-                className="button"
                 disabled={
                   !ready ||
                   holding ||
@@ -275,7 +272,7 @@ export default function PTZPanel({
               >
                 <Home size={16} aria-hidden="true" />
                 归位
-              </button>
+              </Button>
               <span className="muted">
                 {holding ? "移动中 · 松开即停止" : "按住方向移动，松开停止"}
               </span>
@@ -288,10 +285,9 @@ export default function PTZPanel({
                 <strong>
                   {status.position ? status.position[axis].toFixed(3) : "—"}
                 </strong>
-                <progress
-                  aria-label={axis === "pan" ? "水平位置" : "垂直位置"}
-                  max={2}
-                  value={status.position ? status.position[axis] + 1 : 1}
+                <Progress
+                  label={axis === "pan" ? "水平位置" : "垂直位置"}
+                  value={status.position ? (status.position[axis] + 1) * 50 : 50}
                 />
               </div>
             ))}
@@ -313,7 +309,7 @@ export default function PTZPanel({
               );
             }}
           >
-            <input
+            <Input
               aria-label="新预置位名称"
               placeholder="为当前位置命名"
               maxLength={64}
@@ -322,8 +318,7 @@ export default function PTZPanel({
               disabled={!ready || busy || holding}
               onChange={(event) => setName(event.target.value)}
             />
-            <button
-              className="button"
+            <Button
               type="submit"
               disabled={
                 !ready ||
@@ -335,7 +330,7 @@ export default function PTZPanel({
             >
               <Plus size={16} aria-hidden="true" />
               添加
-            </button>
+            </Button>
           </form>
           <div className="preset-list">
             {status.presets.length === 0 ? (
@@ -352,8 +347,8 @@ export default function PTZPanel({
                   <div className="button-row">
                     {deleting === preset.token ? (
                       <>
-                        <button
-                          className="button small danger"
+                        <Button
+                          size="sm" variant="danger"
                           disabled={!ready || busy || holding}
                           onClick={() =>
                             void perform(
@@ -363,18 +358,18 @@ export default function PTZPanel({
                           }
                         >
                           确认删除
-                        </button>
-                        <button
-                          className="button small"
+                        </Button>
+                        <Button
+                          size="sm"
                           onClick={() => setDeleting("")}
                         >
                           取消
-                        </button>
+                        </Button>
                       </>
                     ) : (
                       <>
-                        <button
-                          className="button small"
+                        <Button
+                          size="sm"
                           disabled={!ready || busy || holding}
                           onClick={() =>
                             void perform({
@@ -384,9 +379,9 @@ export default function PTZPanel({
                           }
                         >
                           调用
-                        </button>
-                        <button
-                          className="button small"
+                        </Button>
+                        <Button
+                          size="sm"
                           disabled={!ready || busy || holding}
                           onClick={() =>
                             void perform(
@@ -400,15 +395,16 @@ export default function PTZPanel({
                           }
                         >
                           覆盖
-                        </button>
-                        <button
-                          className="button icon small"
+                        </Button>
+                        <Button
+                          className="icon-action"
+                          size="sm"
                           disabled={!ready || busy || holding}
                           aria-label={`删除预置位${preset.name}`}
                           onClick={() => setDeleting(preset.token)}
                         >
                           <Trash2 size={15} aria-hidden="true" />
-                        </button>
+                        </Button>
                       </>
                     )}
                   </div>
@@ -420,7 +416,7 @@ export default function PTZPanel({
             <summary>高级定位与步进</summary>
             <div className="form-grid">
               <Field label="水平目标位置">
-                <input
+                <Input
                   type="number"
                   min={-1}
                   max={1}
@@ -430,7 +426,7 @@ export default function PTZPanel({
                 />
               </Field>
               <Field label="垂直目标位置">
-                <input
+                <Input
                   type="number"
                   min={-1}
                   max={1}
@@ -440,9 +436,8 @@ export default function PTZPanel({
                 />
               </Field>
             </div>
-            <button
+            <Button
               type="button"
-              className="button"
               disabled={
                 !ready ||
                 busy ||
@@ -456,9 +451,9 @@ export default function PTZPanel({
               }
             >
               移动到目标位置
-            </button>
+            </Button>
             <Field label="相对步长">
-              <input
+              <Input
                 type="number"
                 min={0.01}
                 max={1}
@@ -474,9 +469,9 @@ export default function PTZPanel({
                 ["上移一步", 0, 1],
                 ["下移一步", 0, -1],
               ].map(([label, x, y]) => (
-                <button
+                <Button
                   key={label}
-                  className="button small"
+                  size="sm"
                   disabled={
                     !ready ||
                     busy ||
@@ -494,7 +489,7 @@ export default function PTZPanel({
                   }
                 >
                   {label}
-                </button>
+                </Button>
               ))}
             </div>
           </details>

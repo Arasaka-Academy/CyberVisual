@@ -7,6 +7,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../src/app/App";
 import {
@@ -227,7 +228,7 @@ describe("device console", () => {
     route("nvr");
     render(<App />);
     expect(
-      await screen.findByRole("checkbox", { name: /启用网络摄像头协议/ }),
+      await screen.findByRole("switch", { name: /启用网络摄像头协议/ }),
     ).toBeDisabled();
     expect(screen.getByText("CYBERVISUAL_ONVIF_PASSWORD")).toBeInTheDocument();
   });
@@ -261,11 +262,11 @@ describe("device console", () => {
     expect((await screen.findAllByText("状态未知")).length).toBeGreaterThan(0);
     expect(screen.getByText(/最近已知：存在/)).toBeInTheDocument();
     expect(screen.getByText("第 1 / 3 页")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "下一页事件" }));
+    fireEvent.click(screen.getByRole("button", { name: "下一页" }));
     expect(screen.getByText("第 2 / 3 页")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("事件类别"), {
-      target: { value: "person" },
-    });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /事件类别/ }));
+    await user.click(await screen.findByRole("option", { name: "人物" }));
     expect(screen.getByText("第 1 / 2 页")).toBeInTheDocument();
     expect(screen.queryByText("车辆出现")).not.toBeInTheDocument();
   });

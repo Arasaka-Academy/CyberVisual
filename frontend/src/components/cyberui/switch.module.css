@@ -1,0 +1,12 @@
+/* Generated from packages/react/src/switch.module.css. Regenerate in CyberUI with pnpm registry:build; after installation, edit this file freely. */
+@layer theme, base, components, utilities;
+@reference './tailwind-theme.css';
+
+@layer components {
+.choice { @apply tw:flex tw:items-center tw:gap-cyber-md tw:min-h-cyber-touch tw:cursor-pointer tw:text-[length:15px]; }
+.choice[data-disabled] { @apply tw:opacity-[.45] tw:cursor-not-allowed; }
+.switchTrack,.switchKnob { @apply tw:pointer-events-none; }
+.switchTrack { @apply tw:flex tw:items-center tw:w-[66px] tw:h-[30px] tw:p-[3px]; border: 2px solid var(--cyber-ink); }
+.switchKnob { @apply tw:w-[25px] tw:h-[20px]; background: var(--cyber-ink); transition: transform var(--cyber-state-duration); }
+.choice[data-selected] .switchKnob { transform: translateX(31px); background: var(--cyber-accent); }
+}

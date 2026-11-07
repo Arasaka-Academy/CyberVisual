@@ -1,0 +1,9 @@
+/* Generated from packages/react/src/segmented-control.module.css. Regenerate in CyberUI with pnpm registry:build; after installation, edit this file freely. */
+@layer theme, base, components, utilities;
+@reference './tailwind-theme.css';
+
+@layer components {
+.segmented { @apply tw:flex tw:flex-wrap; border: 1px solid var(--cyber-ink); @apply tw:p-[3px] tw:w-[fit-content]; }
+.segment { @apply tw:min-h-[38px] tw:p-[9px_var(--cyber-space-xl)]; border: 0; background: transparent; @apply tw:text-cyber-ink; font: 500 12px var(--cyber-font-display); @apply tw:uppercase tw:cursor-pointer; }
+.segment[aria-checked='true'] { background: var(--cyber-ink); @apply tw:text-cyber-on-ink; }
+}

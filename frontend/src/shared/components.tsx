@@ -1,6 +1,16 @@
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { AlertCircle, ChevronRight, Copy, RefreshCw } from "lucide-react";
+import { ChevronRight, Copy, RefreshCw } from "lucide-react";
+import { Badge as CyberBadge } from "../components/cyberui/badge";
+import { Panel as CyberPanel, type PanelShape } from "../components/cyberui/panel";
+import { Alert } from "../components/cyberui/alert";
+import { EmptyState } from "../components/cyberui/empty-state";
+import { Field as CyberField } from "../components/cyberui/field";
+import { Switch } from "../components/cyberui/switch";
+import { Button, Input } from "./controls";
+import panelStyles from "../components/cyberui/panel.module.css";
+
+export { Button, Input, Select, Slider, Textarea, Progress, HoldButton } from "./controls";
 
 export type Tone = "good" | "warn" | "bad" | "neutral";
 export function Badge({
@@ -11,10 +21,7 @@ export function Badge({
   tone?: Tone;
 }) {
   return (
-    <span className={`badge ${tone}`}>
-      <span className="status-dot" aria-hidden="true" />
-      {children}
-    </span>
+    <CyberBadge tone={{ good: "success", warn: "warning", bad: "danger", neutral: "default" }[tone] as "success" | "warning" | "danger" | "default"} dot>{children}</CyberBadge>
   );
 }
 export function Panel({
@@ -23,24 +30,24 @@ export function Panel({
   action,
   children,
   className = "",
+  shape = "header",
 }: {
   title: string;
   description?: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  shape?: PanelShape;
 }) {
   return (
-    <section className={`panel ${className}`}>
-      <div className="panel-heading">
-        <div>
-          <h2>{title}</h2>
-          {description && <p>{description}</p>}
-        </div>
+    <CyberPanel shape={shape} className={`panel ${className}`}>
+      <div className={shape === "header" ? `${panelStyles.panelTitle} panel-heading` : "panel-heading plain-heading"}>
+        <h2>{title}</h2>
         {action}
       </div>
+      {description && <p className="panel-description">{description}</p>}
       {children}
-    </section>
+    </CyberPanel>
   );
 }
 export function Notice({
@@ -53,17 +60,16 @@ export function Notice({
   retry?: () => void;
 }) {
   return (
-    <div
-      className={`notice ${tone}`}
-      role={tone === "bad" ? "alert" : "status"}
-    >
-      <AlertCircle size={18} aria-hidden="true" />
-      <div>{children}</div>
+    <div className="notice">
+      <Alert title={typeof children === "string" ? children : "设备提示"}
+        tone={{ good: "success", warn: "warning", bad: "danger", neutral: "info" }[tone] as "success" | "warning" | "danger" | "info"}>
+        {typeof children === "string" ? undefined : children}
+      </Alert>
       {retry && (
-        <button type="button" className="button small" onClick={retry}>
+        <Button type="button" size="sm" onPress={retry}>
           <RefreshCw size={14} aria-hidden="true" />
           重试
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -76,10 +82,8 @@ export function Empty({
   children?: ReactNode;
 }) {
   return (
-    <div className="empty-state">
-      <strong>{title}</strong>
-      {children && <p>{children}</p>}
-    </div>
+    <EmptyState title={title} description={typeof children === "string" ? children : undefined}
+      action={typeof children === "string" ? undefined : children} />
   );
 }
 export function Field({
@@ -92,11 +96,7 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="field">
-      <span>{label}</span>
-      {children}
-      {help && <small>{help}</small>}
-    </label>
+    <CyberField label={label} description={help}>{children}</CyberField>
   );
 }
 export function Toggle({
@@ -113,19 +113,10 @@ export function Toggle({
   onChange: (value: boolean) => void;
 }) {
   return (
-    <label className="toggle-row">
-      <span>
-        <strong>{label}</strong>
-        {help && <small>{help}</small>}
-      </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      <span className="toggle-track" aria-hidden="true" />
-    </label>
+    <div className="toggle-row">
+      <Switch label={label} isSelected={checked} isDisabled={disabled} onChange={onChange} />
+      {help && <p className="muted">{help}</p>}
+    </div>
   );
 }
 export function CopyField({
@@ -142,15 +133,15 @@ export function CopyField({
       <label>
         {label}
         <div>
-          <input
+          <Input
             ref={ref}
             value={value || "暂不可用"}
             readOnly
             onFocus={(event) => event.currentTarget.select()}
           />
-          <button
+          <Button
             type="button"
-            className="button icon"
+            className="icon-action"
             aria-label={`复制${label}`}
             disabled={!value}
             onClick={async () => {
@@ -166,7 +157,7 @@ export function CopyField({
             }}
           >
             <Copy size={16} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
       </label>
       {message && <small role="status">{message}</small>}

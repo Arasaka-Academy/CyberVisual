@@ -1,0 +1,12 @@
+/* Generated from packages/react/src/table.module.css. Regenerate in CyberUI with pnpm registry:build; after installation, edit this file freely. */
+@layer theme, base, components, utilities;
+@reference './tailwind-theme.css';
+
+@layer components {
+.tableWrap { @apply tw:w-full tw:overflow-x-auto; }
+.table { @apply tw:w-full; border-collapse: collapse; @apply tw:text-left tw:text-[length:14px]; }
+.table th { @apply tw:p-[13px_var(--cyber-space-lg)] tw:text-cyber-muted; font: 12px var(--cyber-font-mono); border-bottom: 1px solid var(--cyber-ink); @apply tw:whitespace-nowrap; }
+.table td { @apply tw:p-cyber-lg; border-bottom: 1px solid var(--cyber-line); }
+.table tbody tr:hover { background: var(--cyber-soft); }
+.table th button { @apply tw:text-inherit; background: transparent; border: 0; @apply tw:p-[0]; font: inherit; @apply tw:flex tw:items-center tw:gap-[8px]; }
+}

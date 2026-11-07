@@ -1,0 +1,12 @@
+/* Generated from packages/react/src/alert.module.css. Regenerate in CyberUI with pnpm registry:build; after installation, edit this file freely. */
+@layer theme, base, components, utilities;
+@reference './tailwind-theme.css';
+
+@layer components {
+.alert { @apply tw:flex tw:gap-[12px]; border: 1px solid var(--cyber-line); border-left: 3px solid var(--cyber-info); @apply tw:p-[16px]; background: var(--cyber-soft); }
+.alert[data-tone='danger'] { @apply tw:border-l-cyber-danger; }
+.alert[data-tone='success'] { @apply tw:border-l-cyber-success; }
+.alert[data-tone='warning'] { @apply tw:border-l-cyber-warning; }
+.alert strong { @apply tw:block tw:text-[length:14px]; }
+.alert p { @apply tw:m-[var(--cyber-space-xs)_0_0] tw:text-cyber-muted tw:text-[length:13px]; }
+}

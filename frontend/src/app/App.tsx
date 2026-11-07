@@ -1,14 +1,16 @@
 import { usePoll } from "../shared/hooks";
 import { useConfigManager } from "../features/settings/useConfigManager";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   ArrowUpRight,
   Camera,
   LayoutDashboard,
+  Menu,
   Move,
   Network,
   Settings2,
+  Palette,
   ShieldCheck,
 } from "lucide-react";
 import { getStatus } from "../features/runtime/api";
@@ -21,6 +23,9 @@ import Monitor from "../features/stream/MonitorPage";
 import Nvr from "../features/network-camera/NvrPage";
 import Events from "../features/events/EventsPage";
 import Settings from "../features/settings/SettingsPage";
+import { AppearanceProvider, AppearanceDialog } from "./appearance";
+import { Button } from "../components/cyberui/button";
+import { Drawer } from "../components/cyberui/drawer";
 
 const navigation: Array<{
   route: Route;
@@ -34,7 +39,7 @@ const navigation: Array<{
     label: "设备总览",
     short: "总览",
     icon: LayoutDashboard,
-    description: "运行状态与接入准备",
+    description: "本地摄像头，运行状态一览。采集、分析与协议输出独立呈现。",
   },
   {
     route: "monitor",
@@ -66,6 +71,11 @@ const navigation: Array<{
   },
 ];
 export default function App() {
+  return <AppearanceProvider><Workspace /></AppearanceProvider>;
+}
+function Workspace() {
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const route = useRoute();
   const visible = useVisible();
   const now = useNow(visible);
@@ -87,6 +97,17 @@ export default function App() {
     }
   }, [route, current.label]);
   const healthy = !!status && status.health === "running" && !stale;
+  const navigationLinks = (
+    <nav className="main-navigation" aria-label="主导航">
+      {navigation.map(({ route: target, label, icon: Icon }, index) => (
+        <a key={target} href={`#/${target}`} className={`nav-item ${route === target ? "active" : ""}`}
+          aria-current={route === target ? "page" : undefined} onClick={() => setNavigationOpen(false)}>
+          <Icon size={18} aria-hidden="true" /><span>{label}</span>
+          <span className="nav-index" aria-hidden="true">0{index + 1}</span>
+        </a>
+      ))}
+    </nav>
+  );
   return (
     <div className="app-shell">
       <a
@@ -106,32 +127,15 @@ export default function App() {
           aria-label="CyberVisual 设备总览"
         >
           <span className="brand-mark">
-            CV
-            <span />
+            <Camera size={22} aria-hidden="true" />
           </span>
           <span>
             <strong>CyberVisual</strong>
-            <small>智能摄像头控制台</small>
+            <small>EDGE VISION / WORKSPACE</small>
           </span>
         </a>
         <span className="nav-section-label">设备工作区</span>
-        <nav className="main-navigation" aria-label="主导航">
-          {navigation.map(({ route: target, label, short, icon: Icon }) => (
-            <a
-              key={target}
-              href={`#/${target}`}
-              className={`nav-item ${route === target ? "active" : ""}`}
-              aria-current={route === target ? "page" : undefined}
-            >
-              <Icon size={20} aria-hidden="true" />
-              <span className="nav-full-label">{label}</span>
-              <span className="nav-short-label">{short}</span>
-              {route === target && (
-                <span className="nav-active-dot" aria-hidden="true" />
-              )}
-            </a>
-          ))}
-        </nav>
+        {navigationLinks}
         <div className="sidebar-footer">
           <div>
             <span className={`connection-dot ${healthy ? "on" : ""}`} />
@@ -152,13 +156,8 @@ export default function App() {
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <div>
-            <span className="header-context">
-              CYBERVISUAL <span>/</span> DEVICE CONSOLE
-            </span>
-            <h1>{current.label}</h1>
-            <p>{current.description}</p>
-          </div>
+          <Button className="menu-trigger icon-action" aria-label="打开导航" onPress={() => setNavigationOpen(true)}><Menu size={19} aria-hidden="true" /></Button>
+          <span className="header-context">CYBERVISUAL <span>/</span> DEVICE CONSOLE</span>
           <div className="topbar-status">
             <Badge
               tone={
@@ -189,6 +188,9 @@ export default function App() {
               error={!!runtime.error}
             />
           </div>
+          <Button className="icon-action appearance-trigger" aria-label="外观设置" onPress={() => setAppearanceOpen(true)}>
+            <Palette size={19} aria-hidden="true" />
+          </Button>
         </header>
         <main
           id="main-content"
@@ -197,6 +199,16 @@ export default function App() {
           aria-label={current.label}
           className="main-content"
         >
+          <div className="page-heading">
+            <div>
+            <span className="eyebrow">DEVICE WORKSPACE / 0{navigation.indexOf(current) + 1}</span>
+            <h1>{current.label}<span className="terminal-cursor" aria-hidden="true">_</span></h1>
+            <p>{current.description}</p>
+            </div>
+            {route === "overview" && <Button variant="primary" onPress={() => { window.location.hash = "/monitor"; }}>
+              <Camera size={17} aria-hidden="true" />进入实时监看<ArrowUpRight size={16} aria-hidden="true" />
+            </Button>}
+          </div>
           {runtime.error && (
             <Notice retry={runtime.refresh}>
               状态更新失败：{runtime.error}
@@ -235,6 +247,11 @@ export default function App() {
           </span>
         </footer>
       </div>
+      <Drawer title="设备工作区" isOpen={navigationOpen} onOpenChange={setNavigationOpen}>
+        {navigationLinks}
+        <p className="drawer-note muted">CYBERVISUAL / EDGE VISION</p>
+      </Drawer>
+      <AppearanceDialog open={appearanceOpen} onOpenChange={setAppearanceOpen} />
     </div>
   );
 }

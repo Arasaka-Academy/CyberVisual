@@ -1,3 +1,5 @@
+import { Button, Input, Textarea, Select } from "../../shared/controls";
+import { Panel as CyberPanel } from "../../components/cyberui/panel";
 import { ConfigSection, ConfigUnavailable } from "../settings/ConfigSection";
 import { useRef, useState } from "react";
 import { CheckCircle2, Circle, Copy, Radio, Video } from "lucide-react";
@@ -78,9 +80,8 @@ export default function Nvr({
         <p className="page-description">
           让外部 NVR 发现、管理并获取这台摄像头的视频。
         </p>
-        <button
+        <Button
           type="button"
-          className="button"
           disabled={!network}
           onClick={async () => {
             try {
@@ -100,7 +101,7 @@ export default function Nvr({
         >
           <Copy size={16} aria-hidden="true" />
           复制接入信息
-        </button>
+        </Button>
       </div>
       {copyMessage && (
         <p className="save-notice" role="status">
@@ -108,10 +109,10 @@ export default function Nvr({
         </p>
       )}
       {manualCopy && (
-        <textarea
+        <Textarea
           ref={copyRef}
           className="connection-export"
-          aria-label="接入信息"
+          label="接入信息"
           value={connectionText}
           readOnly
           onFocus={(event) => event.currentTarget.select()}
@@ -120,7 +121,7 @@ export default function Nvr({
       )}
       <div className="readiness-grid">
         {checks.map((check) => (
-          <div className="readiness-card" key={check.title}>
+          <CyberPanel shape="rail" className="readiness-card" key={check.title}>
             {check.good ? (
               <CheckCircle2
                 size={18}
@@ -134,7 +135,7 @@ export default function Nvr({
               <span>{check.title}</span>
               <strong>{check.detail}</strong>
             </div>
-          </div>
+          </CyberPanel>
         ))}
       </div>
       {!network && (
@@ -190,6 +191,8 @@ export default function Nvr({
           return (
             <Panel
               key={token}
+              className="profile-card"
+              shape="brackets"
               title={token === "raw" ? "原始视频" : "AI 标注视频"}
               description={
                 token === "raw"
@@ -278,7 +281,7 @@ export default function Nvr({
               />
               <div className="form-grid">
                 <Field label="公布的 IPv4 地址" help="留空时自动选择局域网地址">
-                  <input
+                  <Input
                     placeholder="自动选择"
                     value={settings.advertise_host}
                     onChange={(event) =>
@@ -287,7 +290,7 @@ export default function Nvr({
                   />
                 </Field>
                 <Field label="RTSP 端口">
-                  <input
+                  <Input
                     type="number"
                     min={1024}
                     max={65535}
@@ -298,21 +301,14 @@ export default function Nvr({
                     }
                   />
                 </Field>
-                <Field label="编码器">
-                  <select
+                <Select label="编码器"
                     value={settings.encoder}
-                    onChange={(event) =>
+                    onChange={(value) =>
                       set({
-                        encoder: event.target
-                          .value as NetworkCameraConfig["encoder"],
+                        encoder: value as NetworkCameraConfig["encoder"],
                       })
                     }
-                  >
-                    <option value="auto">自动选择</option>
-                    <option value="jetson">Jetson 硬件编码</option>
-                    <option value="software">软件编码</option>
-                  </select>
-                </Field>
+                   options={[{"id":"auto","label":"自动选择"},{"id":"jetson","label":"Jetson 硬件编码"},{"id":"software","label":"软件编码"}]} />
                 <div className="field read-only-field">
                   <span>实际编码器</span>
                   <strong>{network?.encoder || "尚未选择"}</strong>
@@ -326,7 +322,7 @@ export default function Nvr({
                   onChange={(discovery_enabled) => set({ discovery_enabled })}
                 />
                 <Field label="发现网络接口 IPv4" help="留空时使用默认接口">
-                  <input
+                  <Input
                     value={settings.discovery_interface}
                     placeholder="默认接口"
                     onChange={(event) =>
@@ -340,7 +336,7 @@ export default function Nvr({
                       <Field
                         label={`${kind === "raw" ? "原始" : "标注"}帧率上限（FPS）`}
                       >
-                        <input
+                        <Input
                           type="number"
                           required
                           min={1}
@@ -354,7 +350,7 @@ export default function Nvr({
                       <Field
                         label={`${kind === "raw" ? "原始" : "标注"}码率（kbps）`}
                       >
-                        <input
+                        <Input
                           type="number"
                           required
                           min={64}

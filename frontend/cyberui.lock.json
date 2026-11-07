@@ -1,0 +1,270 @@
+{
+  "repository": "Arasaka-Academy/CyberUI",
+  "commit": "e31c0355b2b5189c9af1e6e26150f28a44287659",
+  "distribution": "GitHub Registry / shadcn@4.23.0",
+  "items": [
+    "button",
+    "panel",
+    "badge",
+    "alert",
+    "empty-state",
+    "input",
+    "textarea",
+    "select",
+    "switch",
+    "slider",
+    "progress",
+    "table",
+    "pagination",
+    "dialog",
+    "drawer",
+    "theme-swatch",
+    "segmented-control"
+  ],
+  "fontsCss": "Selected Oxanium and ShareTechMono declarations from public/fonts.css at the same commit",
+  "orbitReference": {
+    "source": "apps/docs/src/web-scenes/Dashboard.tsx",
+    "styles": "apps/docs/src/web-scenes/web.module.css",
+    "screenshot": "e2e/references/orbit-dashboard.png",
+    "upstreamScreenshot": "docs/images/readme/dashboard.png",
+    "gitBlob": "aa5ea4559bd47e249edec3a7165e3e32d273a6d0"
+  },
+  "files": {
+    "src/components/cyberui/LICENSE": {
+      "upstream": "registry/cyberui/LICENSE",
+      "gitBlob": "c4a0de6049ae7d8247195b093d67d0eae9aa4d65"
+    },
+    "src/components/cyberui/UPSTREAM-LICENSE": {
+      "upstream": "registry/cyberui/UPSTREAM-LICENSE",
+      "gitBlob": "d4b19d3691cc27b24d84ddcf17be053134d3e673"
+    },
+    "src/components/cyberui/UPSTREAM-NOTICE.md": {
+      "upstream": "registry/cyberui/UPSTREAM-NOTICE.md",
+      "gitBlob": "6ecb18483ef95478071a8cf9410a55a92a759062"
+    },
+    "src/components/cyberui/alert.module.css": {
+      "upstream": "registry/cyberui/alert.module.css",
+      "gitBlob": "53bced8a42a0e61c8cb40244095fd895d8ab6dab"
+    },
+    "src/components/cyberui/alert.tsx": {
+      "upstream": "registry/cyberui/alert.tsx",
+      "gitBlob": "b9d0c396669b407fa4dc256d50de172f9e24d8a9"
+    },
+    "src/components/cyberui/badge.module.css": {
+      "upstream": "registry/cyberui/badge.module.css",
+      "gitBlob": "84e97d0ec8e0d155cc092e2ccbc4548889f6c29f"
+    },
+    "src/components/cyberui/badge.tsx": {
+      "upstream": "registry/cyberui/badge.tsx",
+      "gitBlob": "29c61047890a77d52cc23605f907bdacbf977dec"
+    },
+    "src/components/cyberui/button.module.css": {
+      "upstream": "registry/cyberui/button.module.css",
+      "gitBlob": "86115ab82bceb799cd2bbd25a40d213f46f3d148"
+    },
+    "src/components/cyberui/button.tsx": {
+      "upstream": "registry/cyberui/button.tsx",
+      "gitBlob": "42473dac5627f7b2fbe24c6bcfee7e1548437d44"
+    },
+    "src/components/cyberui/choice.module.css": {
+      "upstream": "registry/cyberui/choice.module.css",
+      "gitBlob": "d4f421577b10423190baaf80628cd4fa32362980"
+    },
+    "src/components/cyberui/dialog.tsx": {
+      "upstream": "registry/cyberui/dialog.tsx",
+      "gitBlob": "3490e1a924d22108f732c6b1149302f8031cefe4"
+    },
+    "src/components/cyberui/drawer.tsx": {
+      "upstream": "registry/cyberui/drawer.tsx",
+      "gitBlob": "779ece86758f1331b76f8dd25917d39cb2261e8c"
+    },
+    "src/components/cyberui/empty-state.module.css": {
+      "upstream": "registry/cyberui/empty-state.module.css",
+      "gitBlob": "5573e39b0fd7c149ce77bef598d83c52acf9cee7"
+    },
+    "src/components/cyberui/empty-state.tsx": {
+      "upstream": "registry/cyberui/empty-state.tsx",
+      "gitBlob": "61a1fba3e647c4c50916d32369b95ab05cd1b7c6"
+    },
+    "src/components/cyberui/field.module.css": {
+      "upstream": "registry/cyberui/field.module.css",
+      "gitBlob": "216bf0a6eee8e739ff37067a9f02047beff7c3f5"
+    },
+    "src/components/cyberui/field.tsx": {
+      "upstream": "registry/cyberui/field.tsx",
+      "gitBlob": "9c001913b6c91777cc8a1be7663d89e18a446df9"
+    },
+    "src/components/cyberui/icon-button.module.css": {
+      "upstream": "registry/cyberui/icon-button.module.css",
+      "gitBlob": "b306d43b8def5560efd4e20a9147dd02be0755d2"
+    },
+    "src/components/cyberui/icon-button.tsx": {
+      "upstream": "registry/cyberui/icon-button.tsx",
+      "gitBlob": "e0e139e19357a36ebed4b58d689b7556f1e10b61"
+    },
+    "src/components/cyberui/icon.module.css": {
+      "upstream": "registry/cyberui/icon.module.css",
+      "gitBlob": "cf687c9edfc600e469cb6eef50562618dd3b2862"
+    },
+    "src/components/cyberui/icon.tsx": {
+      "upstream": "registry/cyberui/icon.tsx",
+      "gitBlob": "bd0f3aa5efcc487951ce68c34124eed5af9e6dc9"
+    },
+    "src/components/cyberui/icons.generated.ts": {
+      "upstream": "registry/cyberui/icons.generated.ts",
+      "gitBlob": "4eddb39a152bb4e4a62e5f6a00fe1395b664dd8e"
+    },
+    "src/components/cyberui/input.module.css": {
+      "upstream": "registry/cyberui/input.module.css",
+      "gitBlob": "ebaa4835ccce932ee7f9737d33e12397d53037f6"
+    },
+    "src/components/cyberui/input.tsx": {
+      "upstream": "registry/cyberui/input.tsx",
+      "gitBlob": "01c60f3080cbf3e0ca673b9d647254387fbf4f65"
+    },
+    "src/components/cyberui/modal-surface.module.css": {
+      "upstream": "registry/cyberui/modal-surface.module.css",
+      "gitBlob": "37c7319eb78848b5281ccd0ca025946036c44911"
+    },
+    "src/components/cyberui/modal-surface.tsx": {
+      "upstream": "registry/cyberui/modal-surface.tsx",
+      "gitBlob": "3ecb7f760504c8be9e48dc25a05574ed7f380d96"
+    },
+    "src/components/cyberui/motion.css": {
+      "upstream": "registry/cyberui/motion.css",
+      "gitBlob": "d4b7ea6b246d6e34ac801144324268b756e5411b"
+    },
+    "src/components/cyberui/option.tsx": {
+      "upstream": "registry/cyberui/option.tsx",
+      "gitBlob": "d6863f81dd0af32e76dc8df5a9749d5b46534bcb"
+    },
+    "src/components/cyberui/pagination.module.css": {
+      "upstream": "registry/cyberui/pagination.module.css",
+      "gitBlob": "6faef842099724f696ddb0ce88de0949d015884c"
+    },
+    "src/components/cyberui/pagination.tsx": {
+      "upstream": "registry/cyberui/pagination.tsx",
+      "gitBlob": "ff9d54298d3f2fd6a197142d9fbe968623e0b4cd"
+    },
+    "src/components/cyberui/panel.module.css": {
+      "upstream": "registry/cyberui/panel.module.css",
+      "gitBlob": "bd13693f933ab5b2e4c9871cefb02bdce3e18353"
+    },
+    "src/components/cyberui/panel.tsx": {
+      "upstream": "registry/cyberui/panel.tsx",
+      "gitBlob": "e774e460d7221f41c5d1bee3bf811110caf1cb29"
+    },
+    "src/components/cyberui/popover.module.css": {
+      "upstream": "registry/cyberui/popover.module.css",
+      "gitBlob": "ace227b4a219d7c42eea5af19aea3d73f7470bd3"
+    },
+    "src/components/cyberui/progress-variant.tsx": {
+      "upstream": "registry/cyberui/progress-variant.tsx",
+      "gitBlob": "4f2949c0684ee5dcaccf8d1f973e78d00e63df35"
+    },
+    "src/components/cyberui/progress.module.css": {
+      "upstream": "registry/cyberui/progress.module.css",
+      "gitBlob": "682866e3a7efed1ad84d2f3617595b498a2805b5"
+    },
+    "src/components/cyberui/progress.tsx": {
+      "upstream": "registry/cyberui/progress.tsx",
+      "gitBlob": "b70464c5d8e33598c9752f71c0f063bffbae09cb"
+    },
+    "src/components/cyberui/provider.tsx": {
+      "upstream": "registry/cyberui/provider.tsx",
+      "gitBlob": "561f57e0cb4c85ca975aae93dd0d3d4779489400"
+    },
+    "src/components/cyberui/segmented-control.module.css": {
+      "upstream": "registry/cyberui/segmented-control.module.css",
+      "gitBlob": "dbb64203bdbc5f00254da652ff374731f2fd4296"
+    },
+    "src/components/cyberui/segmented-control.tsx": {
+      "upstream": "registry/cyberui/segmented-control.tsx",
+      "gitBlob": "2f33b8bd702fae151665d6c999f9831c09770c7b"
+    },
+    "src/components/cyberui/select.tsx": {
+      "upstream": "registry/cyberui/select.tsx",
+      "gitBlob": "6c9a44e783fbaa8690c7ecb7b58e59da225aff00"
+    },
+    "src/components/cyberui/shared.ts": {
+      "upstream": "registry/cyberui/shared.ts",
+      "gitBlob": "2f726c66c87a146e7cd32123d692cc5353a2f1de"
+    },
+    "src/components/cyberui/slider.module.css": {
+      "upstream": "registry/cyberui/slider.module.css",
+      "gitBlob": "f1def940a30178af94ef24970ddf8b7a7125520d"
+    },
+    "src/components/cyberui/slider.tsx": {
+      "upstream": "registry/cyberui/slider.tsx",
+      "gitBlob": "d322334ee721e6d7e960f346dd3ddd2b9d497120"
+    },
+    "src/components/cyberui/styles.css": {
+      "upstream": "registry/cyberui/styles.css",
+      "gitBlob": "495af180b0dabf3c33902fe8cf28d70352f00098"
+    },
+    "src/components/cyberui/switch.module.css": {
+      "upstream": "registry/cyberui/switch.module.css",
+      "gitBlob": "ce85bdedcd5d73fb55de87df1dca9d0c57db3b24"
+    },
+    "src/components/cyberui/switch.tsx": {
+      "upstream": "registry/cyberui/switch.tsx",
+      "gitBlob": "dd84601b37de269b0a4d99ef7eb2daf415997f25"
+    },
+    "src/components/cyberui/table.module.css": {
+      "upstream": "registry/cyberui/table.module.css",
+      "gitBlob": "700b59170c8338b2840008e8ce8f8bff17ccba59"
+    },
+    "src/components/cyberui/table.tsx": {
+      "upstream": "registry/cyberui/table.tsx",
+      "gitBlob": "dd35a368df620005f69e8239af3fb8dec7fa6756"
+    },
+    "src/components/cyberui/tailwind-theme.css": {
+      "upstream": "registry/cyberui/tailwind-theme.css",
+      "gitBlob": "4913024623b37d5f028b16590bfcbc18ff0e0266"
+    },
+    "src/components/cyberui/textarea.tsx": {
+      "upstream": "registry/cyberui/textarea.tsx",
+      "gitBlob": "53f3c3f9a968eec63400f365f344b923a1696071"
+    },
+    "src/components/cyberui/theme-swatch.module.css": {
+      "upstream": "registry/cyberui/theme-swatch.module.css",
+      "gitBlob": "2a5f8c8b5b0ef4c96ed45b51fbcb7197383dc20a"
+    },
+    "src/components/cyberui/theme-swatch.tsx": {
+      "upstream": "registry/cyberui/theme-swatch.tsx",
+      "gitBlob": "f732b783bfda35aae5b8aba01453d965e1d4dd05"
+    },
+    "src/components/cyberui/tokens.css": {
+      "upstream": "registry/cyberui/tokens.css",
+      "gitBlob": "a5106509bfe31c31c99708468988ac8f21a86a2a"
+    },
+    "src/components/cyberui/tokens.ts": {
+      "upstream": "registry/cyberui/tokens.ts",
+      "gitBlob": "e82c8587e869b04c518c102ed94de1075617a1ba"
+    },
+    "public/fonts/OFL-Oxanium.txt": {
+      "upstream": "public/fonts/OFL-Oxanium.txt",
+      "gitBlob": "38913c09407f12006ade3c8391bc3ad48fadc4ee"
+    },
+    "public/fonts/OFL-ShareTechMono.txt": {
+      "upstream": "public/fonts/OFL-ShareTechMono.txt",
+      "gitBlob": "2ff09c1b7647c10aaa9c8a1eccd4970b5f1ae177"
+    },
+    "public/fonts/Oxanium-Bold.ttf": {
+      "upstream": "public/fonts/Oxanium-Bold.ttf",
+      "gitBlob": "461135502a8203ed60d3a338d2be32022ca715ff"
+    },
+    "public/fonts/Oxanium-Regular.ttf": {
+      "upstream": "public/fonts/Oxanium-Regular.ttf",
+      "gitBlob": "c96d47d22f69cd9cf6e0dd6c9ac616f67a2febc1"
+    },
+    "public/fonts/Oxanium-SemiBold.ttf": {
+      "upstream": "public/fonts/Oxanium-SemiBold.ttf",
+      "gitBlob": "32e882e54c2c8172978576955d77b7dca244b544"
+    },
+    "public/fonts/ShareTechMono-Regular.ttf": {
+      "upstream": "public/fonts/ShareTechMono-Regular.ttf",
+      "gitBlob": "1611474a4cc94c3cb51664597cae92a6f3c68857"
+    }
+  }
+}

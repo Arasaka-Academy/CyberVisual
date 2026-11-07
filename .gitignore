@@ -11,6 +11,7 @@ htmlcov/
 node_modules/
 frontend/dist/**/*.map
 frontend/coverage/
+frontend/artifacts/
 _site/
 backend/captures/
 captures/*

@@ -1,3 +1,4 @@
+import { Button } from "../../shared/controls";
 import { useEffect, useState } from "react";
 import {
   Camera,
@@ -116,19 +117,18 @@ export default function Monitor({
               </strong>
               <span>设备视频输出与 AI 服务独立运行。</span>
               {streamError && (
-                <button className="button" onClick={reconnect}>
+                <Button onClick={reconnect}>
                   <RefreshCw size={16} aria-hidden="true" />
                   重新连接
-                </button>
+                </Button>
               )}
             </div>
           )}
         </div>
         <div className="video-toolbar">
           <div className="button-row wrap">
-            <button
+            <Button
               type="button"
-              className="button"
               onClick={() => {
                 if (paused) reconnect();
                 else {
@@ -143,24 +143,23 @@ export default function Monitor({
                 <Pause size={16} aria-hidden="true" />
               )}
               {paused ? "恢复预览" : "暂停预览"}
-            </button>
-            <button type="button" className="button" onClick={reconnect}>
+            </Button>
+            <Button type="button" onClick={reconnect}>
               <RefreshCw size={16} aria-hidden="true" />
               重连
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
-              className="button"
               disabled={saving || !frameFresh}
               onClick={() => void save()}
             >
               <Camera size={16} aria-hidden="true" />
               {saving ? "保存中…" : "保存快照"}
-            </button>
+            </Button>
           </div>
-          <button
+          <Button
             type="button"
-            className="button icon"
+            className="icon-action"
             aria-label="全屏预览"
             onClick={(event) => {
               const stage = event.currentTarget
@@ -172,7 +171,7 @@ export default function Monitor({
             }}
           >
             <Maximize2 size={17} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
         {snapshotError && <Notice>{snapshotError}</Notice>}
         {notice && (

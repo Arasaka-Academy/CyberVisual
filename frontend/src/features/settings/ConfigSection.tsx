@@ -1,3 +1,4 @@
+import { Button } from "../../shared/controls";
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { AlertCircle, Check, Save } from "lucide-react";
@@ -62,22 +63,21 @@ export function ConfigSection({
             {manager.dirtyGroup(group) ? "有未保存的修改" : "与设备配置一致"}
           </span>
           <div className="button-row">
-            <button
-              className="button"
+            <Button
               type="button"
               disabled={!manager.dirtyGroup(group) || manager.saving !== null}
               onClick={() => manager.reset(group)}
             >
               撤销修改
-            </button>
-            <button
-              className="button primary"
+            </Button>
+            <Button
+              variant="primary"
               type="submit"
               disabled={!manager.dirtyGroup(group) || manager.saving !== null}
             >
               <Save size={16} aria-hidden="true" />
               {manager.saving === group ? "保存中…" : "保存配置"}
-            </button>
+            </Button>
           </div>
         </div>
       </form>

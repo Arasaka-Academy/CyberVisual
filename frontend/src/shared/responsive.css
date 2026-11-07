@@ -1,43 +1,65 @@
-@media (max-width: 700px) {
-  .page-stack {
-    gap: 16px;
-  }
-  .panel {
-    padding: 18px;
-  }
-  .panel-heading {
-    gap: 10px;
-    margin-bottom: 19px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-  .panel-heading p {
-    font-size: 12px;
-  }
-  .page-action-row {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
-  }
-  .form-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 18px;
-  }
-  .form-footer {
-    flex-wrap: wrap;
-    gap: 14px;
-  }
-  .form-footer .button-row {
-    margin-left: auto;
-  }
+@media (max-width: 1150px) {
+  .metric-grid, .service-grid, .readiness-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .settings-layout { grid-template-columns: minmax(0,1fr); }
+  .settings-aside { position: static; }
+  .event-status-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .event-status-grid > :last-child { grid-column: 1/-1; }
+  .monitor-grid { grid-template-columns: minmax(0,1.2fr) minmax(300px,1fr); gap: 18px; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
+@media (max-width: 850px) {
+  .app-shell { grid-template-columns: minmax(0,1fr); }
+  .sidebar { display: none; }
+  .menu-trigger { display: inline-flex; }
+  .topbar { padding: 12px 20px; }
+  .main-content { padding: 24px 20px; }
+  .page-heading h1 { font-size: 28px; }
+  .metric { padding: 16px 10px; }
+  .metric strong { font-size: 34px; }
+  .metric-footer span:last-child { display: none; }
+  .monitor-grid { grid-template-columns: minmax(0,1fr); grid-template-areas: "video" "ptz" "detections"; }
+  .overview-detail-grid, .nvr-bottom-grid { grid-template-columns: minmax(0,1fr); }
+  .ptz-drive { grid-template-columns: auto minmax(0,1fr); }
+  .workspace-footer { padding-inline: 20px; }
+}
+@media (max-width: 580px) {
+  .topbar { padding: 12px 16px; gap: 10px; }
+  .header-context { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; flex: 1; font-size: 9px; }
+  .topbar-status { margin-left: 0; }
+  .topbar-status .freshness { display: none; }
+  .topbar-status > span { font-size: 10px; }
+  .main-content { padding: 24px 16px; }
+  .page-heading { margin-bottom: 24px; flex-direction: column; align-items: flex-start; }
+  .page-heading h1 { font-size: 27px; line-height: 1.5; }
+  .page-heading > button { width: 100%; }
+  .overview-intro, .page-action-row, .section-heading { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .metric-grid { gap: 14px; }
+  .metric strong { font-size: 38px; }
+  .metric strong small { font-size: 11px; margin-left: 6px; }
+  .metric-footer { flex-direction: column; }
+  .metric-footer > span { font-size: 10px; }
+  .service-grid, .form-grid, .profile-grid, .event-status-grid, .topic-grid { grid-template-columns: minmax(0,1fr); }
+  .event-status-grid > :last-child { grid-column: auto; }
+  .readiness-grid { gap: 14px; }
+  .readiness-card { padding: 18px 10px; gap: 6px; }
+  .readiness-card strong { font-size: 14px; }
+  .form-footer { flex-direction: column; align-items: flex-start; }
+  .form-footer .button-row { width: 100%; }
+  .form-footer .button-row > button { flex: 1; padding-inline: 10px; font-size: 12px; }
+  .event-filters { align-items: flex-start; flex-direction: column; }
+  .event-filters > div { width: 100%; }
+  .pagination { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .pagination > nav { width: 100%; justify-content: space-between; gap: 0; }
+  .pagination > nav > span { padding-inline: 4px !important; }
+  .panel-heading { flex-wrap: wrap; }
+  .video-toolbar { flex-wrap: wrap; }
+  .video-toolbar .button-row { flex: 1; }
+  .video-toolbar .button-row > button { font-size: 11px; padding-inline: 10px; }
+  .ptz-drive { grid-template-columns: minmax(0,1fr); }
+  .direction-pad { justify-self: center; grid-template-columns: repeat(3,52px); }
+  .direction-button { width: 52px; height: 52px; }
+  .drive-options { grid-template-columns: minmax(0,1fr) auto; align-items: center; }
+  .drive-options > span { grid-column: 1/-1; }
+  .preset-row { flex-direction: column; align-items: flex-start; }
+  .workspace-footer { padding-inline: 16px; flex-direction: column; align-items: flex-start; }
+  .theme-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }

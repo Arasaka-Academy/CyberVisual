@@ -78,6 +78,8 @@ The web UI listens on `0.0.0.0:8000` by default. From another device on the same
 
 控制台默认进入设备总览，支持直接访问与浏览器前进／后退：
 
+界面采用固定版本 CyberUI / ORBIT 工作台，默认 Neon Dark 与简体中文；顶部外观设置支持七套配色、深浅色及跟随系统，选择只保存在当前浏览器。来源、设计对照、主题截图和验证方式见 [CyberUI 控制台规范与验收](docs/console-cyberui.md)。
+
 | 工作区 | 地址 | 用途 |
 | --- | --- | --- |
 | 设备总览 | `/#/overview` | 采集、推理、协议与云台状态 |

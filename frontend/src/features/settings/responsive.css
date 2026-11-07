@@ -1,8 +1,0 @@
-@media (max-width: 1350px) {
-  .settings-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .settings-aside {
-    position: static;
-  }
-}
