@@ -2,10 +2,10 @@ name: Camera protocol and dashboard tests
 
 on:
   pull_request:
-    paths: ['backend/**', 'frontend/**', 'scripts/install_jetson.sh', 'deploy/systemd/**', '.github/workflows/network-camera.yml']
+    paths: ['backend/**', 'frontend/**', 'scripts/**', 'deploy/**', 'docs/jetson-deploy.md', '.github/workflows/network-camera.yml']
   push:
     branches: [main]
-    paths: ['backend/**', 'frontend/**', 'scripts/install_jetson.sh', 'deploy/systemd/**', '.github/workflows/network-camera.yml']
+    paths: ['backend/**', 'frontend/**', 'scripts/**', 'deploy/**', 'docs/jetson-deploy.md', '.github/workflows/network-camera.yml']
   workflow_dispatch:
 
 permissions:
@@ -57,3 +57,100 @@ jobs:
           retention-days: 14
       - name: Verify committed device assets
         run: git diff --exit-code -- dist
+      - name: Package the exact verified application commit
+        working-directory: .
+        run: python3 scripts/jetson_release.py package --sha "$GITHUB_SHA" --output "$RUNNER_TEMP/jetson-release/cybervisual-$GITHUB_SHA.tar.gz"
+      - name: Retain verified application payload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: jetson-release
+          path: ${{ runner.temp }}/jetson-release/
+          retention-days: 14
+          if-no-files-found: error
+
+  deployment-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Isolated deployment, migration and workflow regression
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Validate shell entry points
+        run: |
+          bash -n scripts/bootstrap_jetson_deploy.sh scripts/deploy_jetson.sh scripts/run_backend.sh scripts/install_jetson.sh
+          shellcheck scripts/bootstrap_jetson_deploy.sh scripts/deploy_jetson.sh
+      - name: Validate workflow structure and expressions
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+          "$HOME/go/bin/actionlint" .github/workflows/network-camera.yml
+
+  deploy-jetson:
+    needs: [linux-camera, dashboard, deployment-tests]
+    if: >-
+      github.repository == 'Arasaka-Academy/CyberVisual' &&
+      vars.JETSON_DEPLOY_ENABLED == 'true' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      needs.linux-camera.result == 'success' &&
+      needs.dashboard.result == 'success' &&
+      needs.deployment-tests.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: jetson-production
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: cybervisual-jetson-production
+      cancel-in-progress: false
+    env:
+      JETSON_HOST: ${{ vars.JETSON_HOST || 'nvidia-jetson-nano.civet-beta.ts.net' }}
+      JETSON_HTTP_PORT: ${{ vars.JETSON_HTTP_PORT || '8000' }}
+      JETSON_DIAGNOSTICS: jetson-diagnostics
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Recheck deployment authorization and latest main after acquiring the deployment slot
+        id: gate
+        run: python3 scripts/jetson_release.py gate
+        env:
+          JETSON_DEPLOY_ENABLED: ${{ vars.JETSON_DEPLOY_ENABLED }}
+          CI_RESULTS: ${{ toJSON(needs) }}
+      - name: Retrieve this CI run's verified payload
+        if: steps.gate.outputs.latest == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: jetson-release
+          path: ${{ runner.temp }}/jetson-release
+      - name: Join tailnet using federated workload identity
+        if: steps.gate.outputs.latest == 'true'
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c
+        with:
+          oauth-client-id: ${{ vars.TS_OIDC_CLIENT_ID }}
+          audience: ${{ vars.TS_OIDC_AUDIENCE }}
+          tags: tag:cybervisual-ci
+          version: '1.104.5'
+          log-mode: quiet
+      - name: Publish and observe the detached Jetson transaction
+        if: steps.gate.outputs.latest == 'true'
+        run: >-
+          python3 scripts/jetson_release.py deploy --sha "$GITHUB_SHA"
+          --archive "$RUNNER_TEMP/jetson-release/cybervisual-$GITHUB_SHA.tar.gz"
+          --diagnostics "$JETSON_DIAGNOSTICS"
+      - name: Summarize sanitized deployment outcome
+        if: always()
+        run: python3 scripts/jetson_release.py summarize --sha "$GITHUB_SHA" --diagnostics "$JETSON_DIAGNOSTICS"
+        env:
+          DEPLOY_JOB_STATUS: ${{ job.status }}
+      - name: Retain only sanitized deployment diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: jetson-deployment-${{ github.sha }}
+          path: jetson-diagnostics/status.json
+          retention-days: 14
+          if-no-files-found: warn

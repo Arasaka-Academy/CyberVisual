@@ -1,5 +1,10 @@
 # CyberVisual Jetson Setup
 
+For versioned production releases through GitHub OIDC and Tailscale SSH, follow
+[Jetson automatic deployment](jetson-deploy.md). That path requires explicit
+administrator preparation and is disabled by default; the legacy installer below
+is not the per-release deployment command.
+
 ## 1. System Packages
 
 Place the checkout at `/opt/cybervisual` for the default systemd unit. To use another location, update the paths in `deploy/systemd/cybervisual.service` before installing.

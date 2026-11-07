@@ -1,0 +1,13 @@
+{
+  "description": "CyberVisual main production deployment only",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:Arasaka-Academy/CyberVisual:environment:jetson-production",
+  "custom_claim_rules": {
+    "repository": "Arasaka-Academy/CyberVisual",
+    "workflow_ref": "Arasaka-Academy/CyberVisual/.github/workflows/network-camera.yml@refs/heads/main",
+    "ref": "refs/heads/main",
+    "environment": "jetson-production"
+  },
+  "scopes": ["auth_keys"],
+  "tags": ["tag:cybervisual-ci"]
+}

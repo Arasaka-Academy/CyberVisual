@@ -1,0 +1,19 @@
+[Unit]
+Description=CyberVisual Edge Vision Dashboard (versioned release)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cybervisual/current
+Environment=PYTHONPATH=/opt/cybervisual/current/backend
+Environment=CYBERVISUAL_FRONTEND_DIST=/opt/cybervisual/current/frontend/dist
+EnvironmentFile=@RUNTIME_ENV@
+ExecStart=/opt/cybervisual/current/scripts/run_backend.sh
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

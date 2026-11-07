@@ -1,0 +1,21 @@
+{
+  "tagOwners": {
+    "tag:cybervisual-ci": ["autogroup:admin"],
+    "tag:cybervisual-jetson": ["autogroup:admin"]
+  },
+  "grants": [
+    {
+      "src": ["tag:cybervisual-ci"],
+      "dst": ["tag:cybervisual-jetson"],
+      "ip": ["tcp:22"]
+    }
+  ],
+  "ssh": [
+    {
+      "action": "accept",
+      "src": ["tag:cybervisual-ci"],
+      "dst": ["tag:cybervisual-jetson"],
+      "users": ["cybervisual-deploy"]
+    }
+  ]
+}

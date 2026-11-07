@@ -72,6 +72,9 @@ Target baseline:
 
 The installer creates the Python environment, installs the systemd unit, enables it, and starts `cybervisual` by default. The unit expects the checkout at `/opt/cybervisual`; see [Jetson setup](docs/jetson-setup.md) for deployment details. Set `INSTALL_SYSTEMD=0` to skip service installation, or `START_SYSTEMD=0` to install and enable the service without starting it immediately.
 
+For versioned production releases, use [GitHub OIDC + Tailscale SSH deployment](docs/jetson-deploy.md).
+It is disabled by default and requires explicit administrator preparation; CI never initializes the device or replaces its runtime configuration, models or PTZ state.
+
 The web UI listens on `0.0.0.0:8000` by default. From another device on the same LAN, open `http://<jetson-ip>:8000`.
 
 ## 设备控制台
