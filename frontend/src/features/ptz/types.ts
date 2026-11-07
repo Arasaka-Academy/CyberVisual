@@ -16,6 +16,10 @@ export type PTZStatus = {
   };
   presets: Array<{ token: string; name: string; pan: number; tilt: number }>;
   last_error: string | null;
+  hardware_ready?: boolean;
+  calibrated?: boolean;
+  calibration_required?: boolean;
+  fault?: string | null;
 };
 export type PTZCommand =
   | {

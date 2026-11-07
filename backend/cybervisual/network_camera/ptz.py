@@ -41,6 +41,13 @@ class PTZDriver(object):
     def stop(self):
         raise NotImplementedError
 
+    def close(self):
+        self.stop()
+
+    def readiness(self):
+        return {"hardware_ready": True, "calibrated": True,
+                "calibration_required": False, "fault": None}
+
 
 class SimulatedPTZDriver(PTZDriver):
     simulated = True
@@ -134,8 +141,8 @@ class PTZController(object):
 
     def continuous_move(self, pan, tilt, timeout=2.0):
         self._ready()
-        if not math.isfinite(timeout) or not 0.1 <= timeout <= 30:
-            raise PTZError("ContinuousMove timeout must be 0.1..30 seconds.")
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or not 0.1 <= timeout <= 2:
+            raise PTZError("ContinuousMove timeout must be 0.1..2 seconds.")
         self.driver.continuous_move(self._coordinate(pan), self._coordinate(tilt), timeout)
 
     def stop(self):
@@ -145,6 +152,25 @@ class PTZController(object):
     def home(self):
         self.absolute_move(0.0, 0.0)
 
+    def readiness(self):
+        self._ready()
+        readiness = getattr(self.driver, "readiness", None)
+        return readiness() if readiness else {"hardware_ready": True, "calibrated": True, "calibration_required": False, "fault": None}
+
+    def calibrate_center(self):
+        self._ready()
+        with self._lock:
+            calibrate = getattr(self.driver, "calibrate_center", None)
+            if calibrate is None:
+                raise PTZError("This driver does not support center calibration.")
+            calibrate()
+            self._presets = {}
+            self._save()
+
+    def close(self):
+        if self.driver is not None:
+            getattr(self.driver, "close", self.driver.stop)()
+
     def presets(self):
         self._ready()
         with self._lock:
@@ -152,6 +178,8 @@ class PTZController(object):
 
     def set_preset(self, name, token=None):
         self._ready()
+        if self.readiness()["calibration_required"]:
+            raise PTZUnavailable("Calibrate the current center before saving presets.")
         with self._lock:
             if token and token not in self._presets:
                 raise PTZError("Unknown preset token.")
@@ -172,6 +200,8 @@ class PTZController(object):
 
     def goto_preset(self, token):
         self._ready()
+        if self.readiness()["calibration_required"]:
+            raise PTZUnavailable("Calibrate the current center before using presets.")
         with self._lock:
             if token not in self._presets:
                 raise PTZError("Unknown preset token.")

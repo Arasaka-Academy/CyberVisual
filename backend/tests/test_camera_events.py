@@ -77,6 +77,7 @@ def test_slow_subscriber_overflow_resynchronizes_without_blocking_others():
     backlog = broker.pull(slow)
     assert len(backlog) <= 4
     assert any(event["initialized"] for event in backlog)
+    assert any(event.get("gap") and event["category"] == "queue_overflow" for event in backlog)
     assert backlog[-1]["state"] is False
 
 

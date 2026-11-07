@@ -84,10 +84,10 @@ export function selectGroup(
 ): ConfigPatch {
   if (group === "ptz")
     return {
-      network_camera: { ptz_driver: config.network_camera!.ptz_driver },
+      network_camera: { ptz_driver: config.network_camera!.ptz_driver, ...(config.network_camera!.pd42s1 ? { pd42s1: config.network_camera!.pd42s1 } : {}) },
     };
   if (group === "network") {
-    const { ptz_driver: _driver, ...settings } = config.network_camera!;
+    const { ptz_driver: _driver, pd42s1: _hardware, ...settings } = config.network_camera!;
     return { network_camera: settings };
   }
   return Object.fromEntries(

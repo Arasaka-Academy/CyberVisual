@@ -9,7 +9,19 @@ export type NetworkCameraConfig = {
   annotated_fps: number;
   raw_bitrate_kbps: number;
   annotated_bitrate_kbps: number;
-  ptz_driver: "disabled" | "simulated";
+  ptz_driver: "disabled" | "simulated" | "pd42s1";
+  pd42s1?: {
+    port: string;
+    baudrate: number;
+    pan: PD42S1Axis;
+    tilt: PD42S1Axis;
+  };
+};
+export type PD42S1Axis = {
+  address: number; direction: number; counts_per_turn: number | null;
+  gear_ratio: number | null; minimum_degrees: number | null;
+  maximum_degrees: number | null; maximum_speed: number | null;
+  enabled_feedback: 0 | 1 | null;
 };
 
 export type NetworkCameraStatus = {

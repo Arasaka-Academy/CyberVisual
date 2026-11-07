@@ -17,6 +17,8 @@ class EventBroker(object):
     """Property-change events with independent, bounded PullPoint queues."""
 
     def __init__(self, disappearance_seconds=2.0, max_subscribers=16, queue_size=256):
+        if queue_size < 4:
+            raise ValueError("PullPoint queue must hold a gap marker and three property states.")
         self._condition = threading.Condition()
         self._subscriptions = {}
         self._presence = {"person": False, "vehicle": False}
@@ -165,8 +167,12 @@ class EventBroker(object):
                 continue
             if len(item["queue"]) >= self.queue_size:
                 item["queue"].clear()
+                item["queue"].append({"id": uuid.uuid4().hex, "topic": "Device/EventGap",
+                                      "state": False, "frame_ts": stamp, "initialized": False,
+                                      "source": "camera0", "category": "queue_overflow", "gap": True})
                 self._initialize(item)
-            item["queue"].append(event)
+            else:
+                item["queue"].append(event)
         self._condition.notify_all()
 
     @staticmethod

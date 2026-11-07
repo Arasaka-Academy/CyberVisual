@@ -21,19 +21,41 @@ def ptz_snapshot(camera):
     with camera._lock:
         result = {"enabled": False, "driver": camera.settings["ptz_driver"],
                   "state": "disabled", "simulated": False, "position": None,
-                  "capabilities": {}, "presets": [], "last_error": None}
+                  "capabilities": {}, "presets": [], "last_error": None,
+                  "hardware_ready": False, "calibrated": False,
+                  "calibration_required": camera.settings["ptz_driver"] == "pd42s1", "fault": None}
+        controller = None
         try:
             controller = camera.ptz
             if not controller.enabled:
                 return result
             result["enabled"] = True
+            result.update(controller.readiness())
             position = controller.status()
             capabilities = controller.capabilities()
             presets = controller.presets()
             result.update(state="running", simulated=bool(controller.driver.simulated),
-                          position=position, capabilities=capabilities, presets=presets)
+                          position=position if result["calibrated"] else None, capabilities=capabilities, presets=presets)
+            if result["calibration_required"]:
+                result.update(state="calibration_required", last_error="Confirm the current position as center before moving.")
         except Exception:
             result.update(state="unavailable", last_error="PTZ driver is not ready.")
+            # A feedback/stop fault may have invalidated the reference during
+            # status(). Return that new readiness in the same response.
+            if controller is not None and controller.enabled:
+                try:
+                    result.update(controller.readiness())
+                except Exception:
+                    result.update(hardware_ready=False, calibrated=False, calibration_required=True)
+            result["position"] = None
+            result["last_error"] = {
+                "serial_port_unconfigured": "Configure the PD42S1 serial port before calibration.",
+                "configuration_required": "Configure axis geometry, limits, speed and verified enable feedback before calibration.",
+                "serial_dependency_missing": "The PD42S1 serial driver dependency is missing.",
+                "serial_connection_failed": "Check both PD42S1 addresses, serial connection and driver settings, then reconnect and calibrate.",
+                "stop_unconfirmed": "Stop was not confirmed. Inspect both axes before reconnecting and calibrating.",
+                "serial_feedback_lost": "Position feedback was lost. Inspect both axes and calibrate again.",
+            }.get(result["fault"], result["last_error"])
         return result
 
 
@@ -59,6 +81,23 @@ def register_management(app, runtime):
     @app.route("/api/ptz", methods=["GET"])
     def get_ptz():
         return jsonify(ptz_snapshot(runtime.network_camera))
+
+    @app.route("/api/ptz/calibrate-center", methods=["POST"])
+    def calibrate_ptz():
+        payload = request.get_json(silent=True) if request.is_json else None
+        if not isinstance(payload, dict) or set(payload) != {"confirm"} or payload["confirm"] is not True:
+            return jsonify({"error": "Explicit center confirmation is required."}), 400
+        try:
+            camera = runtime.network_camera
+            with camera._lock:
+                camera.ptz.calibrate_center()
+                return jsonify(ptz_snapshot(camera))
+        except PTZUnavailable:
+            return jsonify({"error": "Center calibration requires ready hardware and stationary axes."}), 503
+        except PTZError as exc:
+            return jsonify({"error": str(exc)}), 400
+        except Exception:
+            return jsonify({"error": "Center calibration could not be confirmed."}), 503
 
     @app.route("/api/ptz/command", methods=["POST"])
     def command_ptz():

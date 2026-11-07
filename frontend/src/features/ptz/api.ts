@@ -5,3 +5,5 @@ export const getPTZ = (signal?: AbortSignal) =>
 
 export const commandPTZ = (command: PTZCommand) =>
   getJson<PTZStatus>("/api/ptz/command", jsonBody(command));
+export const calibratePTZ = () =>
+  getJson<PTZStatus>("/api/ptz/calibrate-center", jsonBody({ confirm: true }));

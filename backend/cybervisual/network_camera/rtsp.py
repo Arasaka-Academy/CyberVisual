@@ -112,8 +112,10 @@ class RTSPServer(object):
                   '! queue max-size-buffers=1 max-size-bytes=0 max-size-time=0 leaky=downstream '
                   '! videoconvert ! video/x-raw,format=I420 ' % (width * height * 6, width, height, fps))
         if self.encoder == "nvv4l2h264enc":
+            # Keep IDRs aligned with the GOP so late clients and NVR segments
+            # receive the SPS/PPS inserted at each IDR. JetPack defaults to 256.
             encoder = ('! nvvidconv ! video/x-raw(memory:NVMM),format=NV12 '
-                       '! nvv4l2h264enc bitrate=%d insert-sps-pps=true iframeinterval=%d ' % (bitrate * 1000, fps))
+                       '! nvv4l2h264enc bitrate=%d insert-sps-pps=true iframeinterval=%d idrinterval=%d ' % (bitrate * 1000, fps, fps))
         else:
             encoder = ('! x264enc tune=zerolatency speed-preset=ultrafast bitrate=%d '
                        'key-int-max=%d bframes=0 byte-stream=true ! video/x-h264,profile=baseline ' % (bitrate, fps))

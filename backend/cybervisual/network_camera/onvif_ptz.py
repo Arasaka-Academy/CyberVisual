@@ -72,7 +72,7 @@ def ptz_request(server, operation, request):
     elif operation == "GetConfigurationOptions":
         options = add(response, "tptz:PTZConfigurationOptions")
         spaces(add(options, "tt:Spaces"))
-        ranges(options, "PTZTimeout", "PT0.1S", "PT30S")
+        ranges(options, "PTZTimeout", "PT0.1S", "PT2S")
     elif operation == "GetStatus":
         state = controller.status()
         status = add(response, "tptz:PTZStatus")

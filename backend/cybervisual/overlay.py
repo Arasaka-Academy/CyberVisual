@@ -83,8 +83,12 @@ def _color_for_label(label):
 
 def _measure_text(draw, text, font):
     if hasattr(draw, "textbbox"):
-        text_box = draw.textbbox((0, 0), text, font=font)
-        return text_box[2] - text_box[0], text_box[3] - text_box[1]
+        try:
+            text_box = draw.textbbox((0, 0), text, font=font)
+            return text_box[2] - text_box[0], text_box[3] - text_box[1]
+        except ValueError:
+            # Pillow 8.4 exposes textbbox but rejects its default bitmap font.
+            pass
     return draw.textsize(text, font=font)
 
 

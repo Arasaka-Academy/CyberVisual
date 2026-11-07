@@ -197,11 +197,12 @@ MessageLimit 为 1–64。客户端应在到期前续订，结束时取消；重
 Zeep 对 TopicExpressionType 的混合文本解析有限制，读取主题时可检查接收的原始 XML；
 Category 与 State 位于可正常读取的消息载荷中。
 
-## 5. PTZ 适配与模拟验收
+## 5. PTZ 适配与验收
 
 生产默认 `ptz_driver=disabled`：GetServices／GetCapabilities／Profile 均不公布
-PTZ 能力，调用 PTZ 返回 ActionNotSupported。只有显式配置 `simulated` 才启用模拟云台。
-模拟状态会清楚标记为 simulated，不代表电机动作或摄像头画面发生变化。
+PTZ 能力，调用 PTZ 返回 ActionNotSupported。显式配置 `simulated` 启用模拟云台，
+状态清楚标记为 simulated；`pd42s1` 接入真实 RS485 驱动，需机械参数、实物使能反馈
+配置和手动确认中心后才能移动，详见 [PD42S1 配置与协议依据](pd42s1.md)。
 
 驱动接口位于 `backend/cybervisual/network_camera/ptz.py`，包括：
 
@@ -221,7 +222,7 @@ pan／tilt 位置、相对位移与连续速度均采用 ONVIF 标准化 `[-1, 1
 归位与最多 32 个预置位由控制器统一处理，固定归位位置为 `(0, 0)`。
 预置位持久化，模拟当前角度在重启后归零。
 
-首版支持绝对、相对、连续移动与停止；连续移动默认 2 秒后停止，允许 0.1–30 秒。
+支持绝对、相对、连续移动与停止；连续移动默认 2 秒后停止，允许 0.1–2 秒。
 超出输入范围返回 Fault；相对／连续移动到达限位时截断至边界。
 没有 zoom 轴，不支持位置移动的自定义 Speed、修改固定归位、写 PTZ 配置或巡航。
 真实驱动实现后必须独立验证机械方向、速度、校准和异常停止。
@@ -237,7 +238,7 @@ pan／tilt 位置、相对位移与连续速度均采用 ONVIF 标准化 `[-1, 1
 | Media v2 | GetServiceCapabilities、GetProfiles、GetVideoSourceConfigurations、GetVideoEncoderConfigurations、GetStreamUri、GetSnapshotUri | Token／Type 查询；编码配置只读；无音频 |
 | Events | GetServiceCapabilities、GetEventProperties、CreatePullPointSubscription | 精确 topic 过滤；订阅数量／生命周期受限 |
 | PullPoint 地址 | PullMessages、SetSynchronizationPoint、Renew、Unsubscribe | Renew／Unsubscribe 使用 WS-Notification 命名空间 |
-| PTZ | GetServiceCapabilities、GetNodes、GetNode、GetConfigurations、GetConfiguration、GetCompatibleConfigurations、GetConfigurationOptions、GetStatus、AbsoluteMove、RelativeMove、ContinuousMove、Stop、GotoHomePosition、GetPresets、SetPreset、GotoPreset、RemovePreset | 仅启用驱动时；首版为模拟 pan／tilt |
+| PTZ | GetServiceCapabilities、GetNodes、GetNode、GetConfigurations、GetConfiguration、GetCompatibleConfigurations、GetConfigurationOptions、GetStatus、AbsoluteMove、RelativeMove、ContinuousMove、Stop、GotoHomePosition、GetPresets、SetPreset、GotoPreset、RemovePreset | 仅启用驱动时；PD42S1 运动前必须标定，连续租约最长 2 秒 |
 | WS-Discovery | Hello、Bye、Probe／ProbeMatches、Resolve／ResolveMatches | IPv4 UDP 3702；固定 scope；RFC3986 scope 匹配 |
 
 ## 7. 可复现验证

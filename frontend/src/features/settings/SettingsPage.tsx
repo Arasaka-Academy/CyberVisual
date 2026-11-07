@@ -284,13 +284,13 @@ export default function Settings({
                   set({
                     network_camera: {
                       ptz_driver: value as
-                        "disabled" | "simulated",
+                        "disabled" | "simulated" | "pd42s1",
                     },
                   })
                 }
-               options={[{"id":"disabled","label":"禁用云台（生产默认）"},{"id":"simulated","label":"模拟驱动（仅验证位置变化）"}]} />
+               options={[{"id":"disabled","label":"禁用云台（生产默认）"},{"id":"simulated","label":"模拟驱动（仅验证位置变化）"},{"id":"pd42s1","label":"PD42S1 RS485（标定后启用）"}]} />
             <p className="muted">
-              当前模拟驱动不控制真实电机，也不会改变视频画面。真实驱动需在硬件确定后接入。
+              模拟驱动仅验证位置变化。PD42S1 需配置串口与两轴机械参数，核对使能反馈后标定中心；不会自动改写驱动器参数。
             </p>
             {!manager.applied?.network_camera?.enabled && (
               <Notice tone="neutral">

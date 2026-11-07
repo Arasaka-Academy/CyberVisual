@@ -19,6 +19,8 @@ def test_moves_validate_limits_and_stop_at_timeout():
     assert controller.status()["tilt"] == pytest.approx(-0.2)
     with pytest.raises(PTZError):
         controller.absolute_move(1.1, 0)
+    with pytest.raises(PTZError):
+        controller.continuous_move(0.1, 0, timeout=2.01)
     controller.continuous_move(0.1, 0, timeout=2)
     now[0] += 3
     assert controller.status()["pan"] == pytest.approx(0.5)

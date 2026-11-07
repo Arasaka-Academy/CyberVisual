@@ -1,5 +1,6 @@
 import calendar
 import datetime
+from io import BytesIO
 import re
 import uuid
 import xml.etree.ElementTree as ET
@@ -67,7 +68,10 @@ def serialize(root):
     for prefix, uri in NS.items():
         if prefix != "wsse_password_digest" and uri not in used:
             root.set("xmlns:" + prefix, uri)
-    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+    # tostring gained xml_declaration in Python 3.8; JetPack runs Python 3.6.
+    output = BytesIO()
+    ET.ElementTree(root).write(output, encoding="utf-8", xml_declaration=True)
+    return output.getvalue()
 
 
 def envelope(payload, action=None, relates_to=None):

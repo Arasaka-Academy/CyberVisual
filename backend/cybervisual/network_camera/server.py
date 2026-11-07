@@ -17,6 +17,7 @@ from .onvif_events import events_request
 from .onvif_media import media_request
 from .onvif_ptz import ptz_request
 from .ptz import PTZController, PTZError, PTZUnavailable, SimulatedPTZDriver
+from .pd42s1 import PD42S1Driver
 from .rtsp import RTSPServer
 from .soap import NS, SOAPFault, envelope, parse_xml, q, text
 
@@ -62,7 +63,10 @@ class NetworkCameraService(object):
                 self._host = advertised_host(self.settings)
             if self._ptz is None:
                 simulated = self.settings["enabled"] and self.settings["ptz_driver"] == "simulated"
-                self._ptz = PTZController(SimulatedPTZDriver() if simulated else None,
+                driver = SimulatedPTZDriver() if simulated else None
+                if self.settings["enabled"] and self.settings["ptz_driver"] == "pd42s1":
+                    driver = PD42S1Driver(self.settings["pd42s1"])
+                self._ptz = PTZController(driver,
                                           os.path.join(self.state_dir, "ptz-presets.json"))
 
     def http_url(self, path):
@@ -124,9 +128,11 @@ class NetworkCameraService(object):
                 self._rtsp = None
             if self._ptz and self._ptz.enabled:
                 try:
-                    self._ptz.stop()
-                except PTZError:
+                    self._ptz.close()
+                except Exception:
                     self._ptz_error = "PTZ driver is not ready."
+                finally:
+                    self._ptz = None
             self.runtime.events.close()
             self._started = False
             self._state = "stopped" if self.settings["enabled"] else "disabled"
@@ -152,9 +158,14 @@ class NetworkCameraService(object):
         position = None
         ptz = self._ptz
         ptz_enabled = bool(ptz and ptz.enabled)
+        readiness = {"hardware_ready": False, "calibrated": False,
+                     "calibration_required": self.settings["ptz_driver"] == "pd42s1", "fault": None}
         if ptz_enabled:
             try:
+                readiness.update(ptz.readiness())
                 position = ptz.status()
+                if not readiness["calibrated"]:
+                    position = None
                 self._ptz_error = None
             except PTZError:
                 self._ptz_error = "PTZ driver is not ready."
@@ -172,10 +183,10 @@ class NetworkCameraService(object):
                 "discovery": {"state": "running" if self._discovery else "error" if self._discovery_error else "disabled",
                               "last_error": self._discovery_error},
                 "events": self.runtime.events.status(),
-                "ptz": {"enabled": ptz_enabled, "driver": self.settings["ptz_driver"],
+                "ptz": dict(readiness, **{"enabled": ptz_enabled, "driver": self.settings["ptz_driver"],
                         "state": "unavailable" if self._ptz_error else "running" if ptz_enabled else "disabled",
                         "last_error": self._ptz_error,
-                        "simulated": bool(position and position.get("simulated")), "position": position}}
+                        "simulated": bool(position and position.get("simulated")), "position": position})}
 
     def register(self, app):
         for path, prefix in (("device_service", "tds"), ("media_service", "trt"), ("media2_service", "tr2"),

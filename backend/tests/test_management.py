@@ -95,6 +95,52 @@ def test_driver_fault_is_readable_without_disclosing_internal_error(managed_came
     assert client.post("/api/ptz/command", json={"action": "stop"}).status_code == 503
 
 
+@pytest.mark.parametrize("payload", [None, {}, {"confirm": False}, {"confirm": 1},
+                                     {"confirm": True, "pan": 0}])
+def test_center_calibration_requires_exact_explicit_confirmation(managed_camera, payload):
+    client, _ = managed_camera
+    assert client.post("/api/ptz/calibrate-center", json=payload).status_code == 400
+
+
+def test_center_api_shares_hardware_reference_with_onvif_and_reports_new_fault(managed_camera):
+    from test_pd42s1 import driver
+    client, runtime = managed_camera
+    motor, bus, _ = driver()
+    runtime.network_camera.settings["ptz_driver"] = "pd42s1"
+    runtime.network_camera._ptz = PTZController(motor)
+    before = client.get("/api/ptz").get_json()
+    assert before["hardware_ready"] and before["calibration_required"]
+    assert before["position"] is None
+    assert client.post("/api/ptz/command", json={"action": "home"}).status_code == 503
+    calibrated = client.post("/api/ptz/calibrate-center", json={"confirm": True}).get_json()
+    assert calibrated["calibrated"] and not calibrated["calibration_required"]
+    assert calibrated["position"]["pan"] == 0
+    namespace = "http://www.onvif.org/ver20/ptz/wsdl"
+    result = client.post("/onvif/ptz_service", data=soap_document(
+        namespace, "AbsoluteMove", children='<op:ProfileToken>raw</op:ProfileToken>'
+        '<op:Position><tt:PanTilt xmlns:tt="http://www.onvif.org/ver10/schema" x="0.4" y="-0.3"/></op:Position>'))
+    assert result.status_code == 200
+    motor._step()
+    assert client.get("/api/ptz").get_json()["position"]["pan"] > 0
+    bus.counts[0] += 100000
+    fault = client.get("/api/ptz").get_json()
+    assert fault["state"] == "unavailable"
+    assert fault["fault"] == "position_outside_limits"
+    assert fault["calibration_required"] and fault["position"] is None
+    motor.close()
+
+
+def test_unconfigured_pd42s1_keeps_video_management_available_and_rejects_calibration(managed_camera):
+    from cybervisual.network_camera.pd42s1 import PD42S1Driver, DEFAULT_PD42S1
+    client, runtime = managed_camera
+    runtime.network_camera.settings["ptz_driver"] = "pd42s1"
+    runtime.network_camera._ptz = PTZController(PD42S1Driver(DEFAULT_PD42S1))
+    state = client.get("/api/ptz").get_json()
+    assert not state["hardware_ready"] and state["fault"] == "serial_port_unconfigured"
+    assert client.post("/api/ptz/calibrate-center", json={"confirm": True}).status_code == 503
+    assert client.get("/api/events/recent").status_code == 200
+
+
 def test_recent_events_work_without_onvif_and_survive_subscription_close(monkeypatch, tmp_path):
     monkeypatch.setenv("CYBERVISUAL_STATE_DIR", str(tmp_path))
     runtime = RuntimeService()

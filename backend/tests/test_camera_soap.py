@@ -1,6 +1,16 @@
 import pytest
 
-from cybervisual.network_camera.soap import duration
+from cybervisual.network_camera.soap import NS, duration, envelope, node, parse_xml
+
+
+def test_serialization_keeps_utf8_declaration_and_qname_namespace_bindings():
+    payload = node("wsnt:TopicExpression", "cv:Analytics/人员")
+    wire = envelope(payload, action="urn:test:notification")
+    assert wire.startswith(b"<?xml version='1.0' encoding='utf-8'?>")
+    assert b'xmlns:cv="urn:cybervisual:onvif:topics:1"' in wire
+    root = parse_xml(wire)
+    assert root.find("s:Header/wsa:Action", NS).text == "urn:test:notification"
+    assert root.find("s:Body/wsnt:TopicExpression", NS).text == "cv:Analytics/人员"
 
 
 @pytest.mark.parametrize("value,seconds", [("P0D", 0), ("PT0S", 0), ("PT1M30S", 90),

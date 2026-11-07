@@ -42,6 +42,10 @@ def _notification(response, event):
     data = add(message, "tt:Data")
     add(data, "tt:SimpleItem", Name="Category", Value=event["category"])
     add(data, "tt:SimpleItem", Name="State", Value="true" if event["state"] else "false")
+    if event.get("id"):
+        add(data, "tt:SimpleItem", Name="EventId", Value=event["id"])
+    if event.get("gap"):
+        add(data, "tt:SimpleItem", Name="Gap", Value="true")
 
 
 def events_request(server, operation, request, subscription=None):

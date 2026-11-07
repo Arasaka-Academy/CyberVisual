@@ -1,5 +1,6 @@
 import ipaddress
 from copy import deepcopy
+from .pd42s1 import DEFAULT_PD42S1, validate_pd42s1
 
 
 DEFAULT_SETTINGS = {
@@ -14,6 +15,7 @@ DEFAULT_SETTINGS = {
     "raw_bitrate_kbps": 2000,
     "annotated_bitrate_kbps": 1000,
     "ptz_driver": "disabled",
+    "pd42s1": deepcopy(DEFAULT_PD42S1),
 }
 
 
@@ -33,8 +35,9 @@ def validate_settings(value):
             raise ValueError("network_camera.%s must be an integer in %d..%d." % (key, minimum, maximum))
     if result["encoder"] not in ("auto", "jetson", "software"):
         raise ValueError("network_camera.encoder must be auto, jetson, or software.")
-    if result["ptz_driver"] not in ("disabled", "simulated"):
-        raise ValueError("network_camera.ptz_driver must be disabled or simulated.")
+    if result["ptz_driver"] not in ("disabled", "simulated", "pd42s1"):
+        raise ValueError("network_camera.ptz_driver must be disabled, simulated or pd42s1.")
+    result["pd42s1"] = validate_pd42s1(result["pd42s1"])
     for key in ("advertise_host", "discovery_interface"):
         item = result[key]
         if not isinstance(item, str):

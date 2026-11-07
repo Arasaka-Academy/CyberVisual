@@ -11,7 +11,7 @@ import {
   Square,
   Trash2,
 } from "lucide-react";
-import { commandPTZ, getPTZ } from "./api";
+import { calibratePTZ, commandPTZ, getPTZ } from "./api";
 import {
   Badge,
   Empty,
@@ -41,6 +41,7 @@ export default function PTZPanel({
   const [notice, setNotice] = useState("");
   const [name, setName] = useState("");
   const [deleting, setDeleting] = useState("");
+  const [confirmCenter, setConfirmCenter] = useState(false);
   const [pan, setPan] = useState(0);
   const [tilt, setTilt] = useState(0);
   const [step, setStep] = useState(0.1);
@@ -54,7 +55,7 @@ export default function PTZPanel({
   const status = ptz.data;
   const stale = !ptz.updatedAt || now - ptz.updatedAt > 5000 || !!ptz.error;
   const ready =
-    !!status?.enabled && status.state === "running" && !stale && visible;
+    !!status?.enabled && status.state === "running" && !status.calibration_required && !stale && visible;
 
   const enqueue = useCallback(
     (command: PTZCommand, lease?: number) => {
@@ -226,6 +227,22 @@ export default function PTZPanel({
             </Notice>
           )}
           {error && <Notice>{error}</Notice>}
+          {status.calibration_required && (
+            <Notice tone="neutral">
+              重启或参考失效后需重新标定中心。确认前请将两轴手动置于安全中心；重新标定会清除原预置位。
+              <div className="button-row wrap">
+                {confirmCenter ? <>
+                  <Button disabled={!status.enabled || busy || stale} onClick={() => {
+                    setBusy(true); release(true);
+                    void queue.current.catch(() => undefined).then(calibratePTZ).then((next) => {
+                      if (mounted.current) { ptz.replace(next); setConfirmCenter(false); setNotice("已确认中心并启用云台。"); }
+                    }).catch((failure: unknown) => { if (mounted.current) setError(errorMessage(failure)); }).finally(() => { if (mounted.current) setBusy(false); });
+                  }}>确认当前位置为中心并启用</Button>
+                  <Button onClick={() => setConfirmCenter(false)}>取消</Button>
+                </> : <Button disabled={!status.enabled || busy || stale} onClick={() => setConfirmCenter(true)}>{status.hardware_ready ? "标定中心" : "重连并标定中心"}</Button>}
+              </div>
+            </Notice>
+          )}
           {notice && (
             <p className="save-notice" role="status">
               {notice}
