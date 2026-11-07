@@ -1,151 +1,232 @@
 .app-shell {
-  position: relative;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 18px;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  padding: 18px;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
-.app-shell::before {
-  content: "";
-  position: absolute;
-  z-index: 4;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 3px;
-  background: var(--accent);
-  box-shadow: 0 0 18px rgba(118, 185, 0, 0.35);
-  pointer-events: none;
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 232px;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 16px 24px;
+  background: #141719;
+  border-right: 1px solid var(--line);
+  z-index: 20;
 }
 
-.topbar {
-  position: relative;
+.brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 58px;
-  border-bottom: 1px solid var(--line);
-}
-
-.topbar::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: clamp(96px, 14vw, 180px);
-  height: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 12px rgba(118, 185, 0, 0.38);
-}
-
-.brand-lockup,
-.topbar-status {
-  display: flex;
-  align-items: center;
-}
-
-.brand-lockup {
-  gap: 14px;
-  min-width: 260px;
+  gap: 11px;
+  padding: 0 10px;
+  min-height: 44px;
 }
 
 .brand-mark {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 14px 0 10px;
-  background: var(--accent);
-  color: #071007;
-  font-weight: 900;
-  letter-spacing: 0;
-  clip-path: polygon(0 0, 88% 0, 100% 50%, 88% 100%, 0 100%);
-}
-
-.brand-divider {
-  width: 1px;
-  height: 28px;
-  background: var(--line);
-}
-
-.brand-copy {
   display: grid;
-  gap: 3px;
-  min-width: 0;
+  place-items: center;
+  width: 37px;
+  height: 37px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #14200f;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  flex-shrink: 0;
 }
 
-.brand-title {
-  font-weight: 750;
-  color: var(--text);
-  white-space: nowrap;
+.brand strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
 }
 
-.brand-meta {
+.brand small {
+  display: block;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.nav-section-label {
+  padding: 43px 14px 15px;
+  font-size: 12px;
+  color: #939e96;
+}
+
+.main-navigation {
+  display: grid;
+  gap: 6px;
+}
+
+.nav-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  color: var(--accent);
-  font-family: "IBM Plex Mono", "Cascadia Code", monospace;
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1;
+  gap: 13px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #b7c0b9;
+  font-size: 14px;
+  transition:
+    background 150ms,
+    color 150ms;
 }
 
-.brand-meta i {
-  width: 14px;
-  height: 1px;
-  background: rgba(118, 185, 0, 0.5);
+.nav-item:hover {
+  background: var(--surface-raised);
+  color: var(--text);
 }
 
-.topbar-status {
-  justify-content: flex-end;
-  gap: 9px;
-  flex-wrap: wrap;
+.nav-item.active {
+  background: var(--accent-soft);
+  color: #bcdfa6;
+  font-weight: 600;
+}
+
+.nav-active-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+.nav-short-label {
+  display: none;
+}
+
+.sidebar-footer {
+  margin: auto 10px 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sidebar-footer > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #d2dad3;
+}
+
+.sidebar-footer p {
+  margin: 6px 0 20px 15px;
+}
+
+.sidebar-footer a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-family: ui-monospace, monospace;
+}
+
+.connection-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #879087;
+  border-radius: 50%;
+}
+
+.connection-dot.on {
+  background: var(--accent);
 }
 
 .workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(300px, 26vw, 360px);
-  gap: 18px;
-  min-height: 0;
-  overflow: hidden;
+  margin-left: 232px;
+  max-width: 2000px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.video-column {
+.topbar {
+  min-height: 128px;
+  padding: 26px 34px 23px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: var(--background);
+}
+
+.header-context {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.1px;
+}
+
+.header-context > span {
+  color: #667168;
+  margin: 0 8px;
+}
+
+.topbar h1 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.7px;
+  margin-top: 6px;
+}
+
+.topbar p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.topbar-status {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 14px;
+  justify-items: end;
+  gap: 8px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 28px 34px 40px;
   min-width: 0;
-  min-height: 0;
 }
 
-.inspector {
-  display: grid;
-  grid-template-rows: minmax(0, 1.25fr) minmax(0, 0.8fr) auto;
-  gap: 14px;
-  min-height: 0;
-  overflow: hidden;
+.main-content:focus {
+  outline: none;
 }
 
-.toast {
+.main-content > .notice {
+  margin-bottom: 18px;
+}
+
+.workspace-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 34px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.workspace-footer span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.skip-link {
   position: fixed;
-  left: 18px;
-  bottom: 18px;
-  z-index: 5;
-  max-width: min(520px, calc(100vw - 36px));
-  padding: 12px 14px;
-  border: 1px solid rgba(118, 185, 0, 0.42);
-  border-radius: 8px;
-  background: rgba(11, 15, 11, 0.94);
-  color: var(--text);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
+  top: -90px;
+  left: 12px;
+  z-index: 100;
+  padding: 12px 18px;
+  background: var(--accent);
+  color: #15220e;
+  border-radius: 5px;
 }
 
-.toast.error {
-  border-color: rgba(255, 82, 82, 0.5);
+.skip-link:focus {
+  top: 12px;
 }

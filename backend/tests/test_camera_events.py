@@ -92,3 +92,21 @@ def test_unsubscribe_and_shutdown_wake_blocked_pullers():
         for future in pending:
             with pytest.raises(SubscriptionError):
                 future.result(timeout=1)
+
+
+def test_recent_history_records_edges_only_and_is_bounded():
+    broker = EventBroker()
+    token = subscription(broker)
+    broker.synchronize(token)
+    assert broker.recent()["events"] == []
+    for index in range(110):
+        broker.observe([PERSON], frame_ts=index * 10, now=index * 10)
+        broker.observe([], frame_ts=index * 10 + 3, now=index * 10 + 3)
+    history = broker.recent()["events"]
+    assert len(history) == 200
+    assert len({event["id"] for event in history}) == 200
+    assert not any(event["initialized"] for event in history)
+    history[0]["state"] = "mutated"
+    assert isinstance(broker.recent()["events"][0]["state"], bool)
+    broker.synchronize(token)
+    assert len(broker.recent()["events"]) == 200

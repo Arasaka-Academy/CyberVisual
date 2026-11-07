@@ -53,43 +53,61 @@ Detector backends:
 
 ## Frontend
 
-The dashboard is a single React/Vite app. It reads `/stream.mjpg` through an `img` element, fetches `/api/status` and `/api/detections/latest` together every second, and loads `/api/config` once on mount. Runtime controls submit updates through `PUT /api/config`.
-
-The UI follows a control-console model: large video workspace, compact status bar, detection inspector, class distribution, and runtime settings drawer.
+The Chinese device console is a React/Vite app with five hash routes: overview,
+monitoring, NVR integration, AI events, and settings. Desktop uses a sidebar;
+viewports below 1024px use labeled bottom navigation. Each instance manages one
+physical camera; external NVR/CyberOS provides recording and playback.
 
 ### Source organization
 
-`frontend/src/main.tsx` mounts `app/App.tsx`, which composes the dashboard. The
-`app/useDashboard.ts` hook coordinates paired status/detection polling, initial
-configuration loading, saves, and global messages. A failed polling pair retains
-the previous complete result; unmounting stops the interval and ignores pending
-poll results.
+`frontend/src/main.tsx` mounts `app/App.tsx`. The existing app/features/shared
+organization is retained; the former single-screen drawer and inspector have
+been replaced by dedicated workspaces.
 
 | Module | Responsibility |
 | --- | --- |
-| `app/` | Dashboard composition, header, global notifications, and cross-feature coordination |
-| `features/runtime/` | Runtime status API/types/defaults, compatibility normalization, status indicators, metrics, and system panel |
-| `features/stream/` | MJPEG preview, HUD, offline placeholder, stream URL and refresh state |
-| `features/detections/` | Detection API/types, object list, class distribution, and snapshot requests |
-| `features/settings/` | Configuration API/types/defaults, compatibility normalization, and settings drawer |
-| `features/network-camera/` | Network camera configuration/status types and ONVIF/RTSP/PTZ connection panel |
-| `shared/` | HTTP JSON transport, `VITE_API_BASE`, theme, and common styles |
+| `app/` | Navigation, application shell, document visibility, global status coordination |
+| `features/runtime/` | Runtime API/types/normalization, overview and device metrics |
+| `features/stream/` | MJPEG preview, pause/reconnect/fullscreen and monitoring workspace |
+| `features/detections/` | Latest detection contracts and device snapshot requests |
+| `features/settings/` | Configuration contracts/defaults, group drafts, save reconciliation and forms |
+| `features/network-camera/` | ONVIF/RTSP profiles, readiness, non-secret settings and NVR guidance |
+| `features/ptz/` | Shared-controller REST API, hold/release controls, presets and normalized positioning |
+| `features/events/` | Current analytics state, bounded recent event log, filtering and pagination |
+| `shared/` | Abortable HTTP transport, non-overlapping polling, accessible presentation and common CSS |
 
-Feature APIs own their endpoints and import only the shared HTTP transport.
-Cross-feature domain references use type-only imports; visual composition and
-request coordination stay in `app/`. Single-use presentation helpers stay beside
-their components rather than becoming global utilities.
+Feature APIs own their endpoints and import the shared HTTP transport. Domain
+contracts stay in the corresponding feature. `frontend/src/styles.css` remains
+the sole stylesheet entry point: shared base and component styles, app and feature
+styles, then their responsive overrides. Feature-specific styles and media queries
+remain alongside the owning component. No component framework or router is added.
 
-`frontend/src/styles.css` is the sole stylesheet entry point. It imports base and
-feature styles before responsive overrides, then network camera overrides last.
-Feature-specific media queries live alongside the corresponding components;
-shared panel, button, and definition-list rules stay in `shared/`. Keep this
-ordering when adding styles, since equally specific selectors rely on the
-cascade. Components do not import styles independently.
+### Data and control lifecycle
 
-Run `npm test` and `npm run build` from `frontend/` after changes. The build also
-refreshes the committed `frontend/dist` assets used by Jetson installations that
-cannot rebuild the frontend locally.
+Global status refreshes every second while visible. Only monitoring mounts the
+MJPEG image and reads detections every second / PTZ every 500ms; only the events
+page reads recent events every 2 seconds. Reads wait for completion before
+scheduling the next request, abort on cleanup, time out after 5 seconds and expose
+independent errors and freshness. Hidden pages release the preview and pause reads.
+
+Applied configuration and drafts are separate. Each group submits only its own
+fields; drafts survive navigation and failures. Writes are serialized, a timed-out
+write is reconciled by reading the device, and read versions prevent stale responses
+from overwriting confirmed saves. Refresh/close warns about unsaved drafts.
+
+PTZ commands use the same controller and persistent presets as ONVIF. Direction
+holds renew a fixed 2-second driver lease every 500ms. Release, pointer cancellation,
+lost capture, blur, hiding and unmount cancel queued renewals and enqueue stop after
+any in-flight command. Reconnecting never restarts a previous movement. The current
+simulated driver changes normalized position only, not the physical camera or image.
+
+The backend event broker keeps the newest 200 actual transitions in memory,
+independent of ONVIF subscriptions and browser sessions. Initial/synchronized
+subscription states do not enter the log. Offline presence is displayed as unknown,
+with the last known value retained. Restarting the process clears the history.
+
+Run `npm test` and `npm run build` from `frontend/`. The build refreshes committed
+`frontend/dist` assets for Jetson installations that cannot rebuild locally.
 
 ## Failure Modes
 

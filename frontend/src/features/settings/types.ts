@@ -1,5 +1,4 @@
 import type { NetworkCameraConfig } from "../network-camera/types";
-
 export type RuntimeConfig = {
   network_camera?: NetworkCameraConfig;
   camera_index: number;
@@ -22,4 +21,8 @@ export type RuntimeConfig = {
   auto_snapshot_enabled: boolean;
   auto_snapshot_label: string;
   auto_snapshot_cooldown_seconds: number;
+};
+
+export type ConfigPatch = Partial<Omit<RuntimeConfig, "network_camera">> & {
+  network_camera?: Partial<NetworkCameraConfig>;
 };

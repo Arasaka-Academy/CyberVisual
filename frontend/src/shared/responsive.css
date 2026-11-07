@@ -1,115 +1,43 @@
-@media (max-width: 1100px) {
-
+@media (max-width: 700px) {
+  .page-stack {
+    gap: 16px;
+  }
   .panel {
-    padding: 12px;
+    padding: 18px;
   }
-
   .panel-heading {
-    margin-bottom: 10px;
+    gap: 10px;
+    margin-bottom: 19px;
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
-
-  .system-list {
-    gap: 7px;
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 820px) {
-
-  .icon-button {
-    width: 32px;
-    height: 32px;
-  }
-
-  .panel {
-    padding: 9px;
-  }
-
-  .panel-heading {
-    margin-bottom: 7px;
-  }
-
-  .panel h2 {
-    font-size: 14px;
-  }
-
-  .panel p {
-    margin-top: 2px;
-    font-size: 10px;
-  }
-
-  .system-list {
-    gap: 4px;
-    font-size: 10px;
-  }
-
-  .system-list dd {
-    max-width: 86px;
-  }
-}
-
-@media (min-width: 821px) and (max-height: 700px) {
-
-  .panel {
-    padding: 10px;
-  }
-
-  .panel-heading {
-    margin-bottom: 7px;
-  }
-
   .panel-heading p {
-    display: none;
+    font-size: 12px;
   }
-
-  .system-list {
-    gap: 4px;
-    font-size: 11px;
+  .page-action-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
   }
-}
-
-@media (min-width: 560px) and (max-width: 820px) {
-  .system-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 12px;
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
   }
-}
-
-@media (max-width: 360px) {
-
-  .icon-button {
-    width: 30px;
-    height: 30px;
+  .form-footer {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .form-footer .button-row {
+    margin-left: auto;
   }
 }
 
-@media (max-width: 360px) and (max-height: 620px) {
-  .panel {
-    padding: 7px;
-  }
-
-  .panel::before {
-    left: 7px;
-  }
-
-  .panel-heading {
-    margin-bottom: 3px;
-  }
-
-  .panel h2 {
-    font-size: 13px;
-  }
-
-  .panel-heading p {
-    display: none;
-  }
-
-  .system-list {
-    gap: 0;
-    font-size: 9px;
-  }
-
-  .system-list div {
-    min-height: 13px;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }

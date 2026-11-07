@@ -1,6 +1,4 @@
 import { getJson } from "../../shared/api";
 import type { RuntimeStatus } from "./types";
-
-export async function getStatus(): Promise<RuntimeStatus> {
-  return getJson<RuntimeStatus>("/api/status");
-}
+export const getStatus = (signal?: AbortSignal) =>
+  getJson<RuntimeStatus>("/api/status", { signal });

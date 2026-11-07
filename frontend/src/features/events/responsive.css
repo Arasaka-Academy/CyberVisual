@@ -1,0 +1,66 @@
+@media (max-width: 1350px) {
+  .event-status-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .event-status-grid .presence-card:last-child {
+    grid-column: 1/-1;
+  }
+}
+
+@media (max-width: 700px) {
+  .event-status-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .event-status-grid .presence-card:last-child {
+    grid-column: auto;
+  }
+  .presence-card {
+    padding: 17px;
+  }
+  .event-filters {
+    align-items: start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .event-table-heading {
+    display: none;
+  }
+  .event-record {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 12px;
+    padding: 14px 0;
+  }
+  .event-record time {
+    padding-top: 0;
+    grid-column: 1/-1;
+  }
+  .event-name {
+    grid-row: 2;
+  }
+  .event-record > code {
+    padding-top: 0;
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .event-details {
+    grid-column: 2;
+    grid-row: 2/4;
+    align-self: end;
+  }
+  .event-details[open] {
+    grid-column: 1/-1;
+    grid-row: 4;
+  }
+  .pagination {
+    flex-wrap: wrap;
+  }
+  .pagination .button-row {
+    margin-left: auto;
+  }
+  .topic-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

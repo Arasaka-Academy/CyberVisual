@@ -1,5 +1,4 @@
 import type { NetworkCameraStatus } from "../network-camera/types";
-
 export type RuntimeStatus = {
   network_camera?: NetworkCameraStatus;
   health: "starting" | "running" | "error" | "thermal_warning" | string;

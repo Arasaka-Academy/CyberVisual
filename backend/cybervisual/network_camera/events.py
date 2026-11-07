@@ -23,6 +23,8 @@ class EventBroker(object):
         self._last_seen = {}
         self._online = False
         self._last_error = None
+        self._history = deque(maxlen=200)
+        self._started_at = time.time()
         self.disappearance_seconds = disappearance_seconds
         self.max_subscribers = max_subscribers
         self.queue_size = queue_size
@@ -68,6 +70,13 @@ class EventBroker(object):
             self._expire()
             return {"online": self._online, "last_error": self._last_error,
                     "presence": dict(self._presence), "subscribers": len(self._subscriptions)}
+
+    def recent(self):
+        """Process-lifetime history, independent of PullPoint subscriptions."""
+        with self._condition:
+            return {"status": self.status(), "capacity": self._history.maxlen,
+                    "started_at": self._started_at,
+                    "events": [dict(event) for event in self._history]}
 
     def subscribe(self, ttl=60, topics=None):
         ttl = self._ttl(ttl)
@@ -149,6 +158,8 @@ class EventBroker(object):
     def _publish(self, topic, state, stamp):
         self._expire()
         event = self._event(topic, state, stamp, False)
+        event["id"] = uuid.uuid4().hex
+        self._history.append(dict(event))
         for item in self._subscriptions.values():
             if topic not in item["topics"]:
                 continue

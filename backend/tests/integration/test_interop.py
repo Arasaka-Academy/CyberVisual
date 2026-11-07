@@ -466,3 +466,26 @@ def test_camera_read_fault_reports_offline_and_recovers(camera, monkeypatch):
     recovery = pull.PullMessages({"Timeout": "PT5S", "MessageLimit": 64})
     assert states(recovery, "AnalyticsOnline") == ["true"]
     assert states(recovery, "PersonPresence") == []
+
+
+def test_dashboard_ptz_and_independent_onvif_client_share_state(camera):
+    runtime, client, base = camera
+    response = requests.post(base + "/api/ptz/command", json={
+        "action": "absolute_move", "pan": .5, "tilt": -.25}, timeout=5)
+    assert response.status_code == 200
+    ptz = client.create_ptz_service()
+    position = ptz.GetStatus({"ProfileToken": "raw"}).Position.PanTilt
+    assert position.x == pytest.approx(.5)
+    assert position.y == pytest.approx(-.25)
+    ptz.RelativeMove({"ProfileToken": "annotated", "Translation": {"PanTilt": {"x": -.2, "y": .1}}})
+    state = requests.get(base + "/api/ptz", timeout=5).json()
+    assert state["position"]["pan"] == pytest.approx(.3)
+    token = ptz.SetPreset({"ProfileToken": "raw", "PresetName": "Dashboard shared"})
+    requests.post(base + "/api/ptz/command", json={"action": "home"}, timeout=5).raise_for_status()
+    requests.post(base + "/api/ptz/command", json={"action": "goto_preset", "token": token}, timeout=5).raise_for_status()
+    assert ptz.GetStatus({"ProfileToken": "raw"}).Position.PanTilt.x == pytest.approx(.3)
+    assert token in [preset["token"] for preset in requests.get(base + "/api/ptz", timeout=5).json()["presets"]]
+    recent = requests.get(base + "/api/events/recent", timeout=5).json()
+    assert recent["capacity"] == 200
+    assert recent["status"]["online"]
+    assert any(event["topic"] == "Device/AnalyticsOnline" for event in recent["events"])

@@ -1,301 +1,373 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import App from "../src/app/App";
+import {
+  configPayload,
+  eventPayload,
+  installFetch,
+  jsonResponse,
+  ptzPayload,
+  statusPayload,
+} from "./fixtures";
 
-const statusPayload = {
-  health: "running",
-  camera: { connected: true, source: "synthetic", error: null },
-  model: { backend: "mock", path: "models/yolov8n_fp16.engine", loaded: true, error: null },
-  fps: 11.4,
-  latency_ms: 47.8,
-  detection_count: 2,
-  dropped_frames: 0,
-  last_error: null,
-  last_frame_ts: 1,
-  temperature_c: 52.2,
-  memory: { total_mb: 4096, used_mb: 1600, percent: 39.1 },
-  auto_snapshot: {
-    enabled: true,
-    label: "person",
-    cooldown_seconds: 30,
-    count: 2,
-    last_trigger_ts: 1,
-    last_image_path: "/tmp/auto-person.jpg",
-    last_metadata_path: "/tmp/auto-person.json",
-    last_error: null
-  }
-};
-
-const detectionsPayload = {
-  frame_ts: 1,
-  version: 7,
-  detections: [
-    { label: "person", confidence: 0.91, bbox: { x1: 12, y1: 30, x2: 220, y2: 360 }, frame_ts: 1, class_id: 0 },
-    { label: "laptop", confidence: 0.79, bbox: { x1: 280, y1: 210, x2: 510, y2: 390 }, frame_ts: 1, class_id: 63 }
-  ]
-};
-
-const configPayload = {
-  camera_index: 0,
-  camera_device: "",
-  camera_fourcc: "MJPG",
-  camera_fps: 30,
-  source: "synthetic",
-  sample_video: "",
-  resolution: { width: 640, height: 480 },
-  confidence: 0.35,
-  iou: 0.45,
-  class_allowlist: [],
-  model_path: "models/yolov8n_fp16.engine",
-  detector_backend: "mock",
-  jpeg_quality: 78,
-  retry_interval_seconds: 2,
-  auto_snapshot_enabled: true,
-  auto_snapshot_label: "person",
-  auto_snapshot_cooldown_seconds: 30
-};
-
-describe("App", () => {
-  beforeEach(() => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-        const url = String(input);
-        if (url.includes("/api/status")) return jsonResponse(statusPayload);
-        if (url.includes("/api/detections/latest")) return jsonResponse(detectionsPayload);
-        if (url.includes("/api/config") && init?.method === "PUT") {
-          return jsonResponse({ ...configPayload, confidence: 0.72 });
-        }
-        if (url.includes("/api/config")) return jsonResponse(configPayload);
-        if (url.includes("/api/snapshot")) return jsonResponse({ image_path: "/tmp/snapshot.jpg", metadata_path: "/tmp/snapshot.json" });
-        return jsonResponse({}, 404);
-      })
-    );
-  });
-
-  afterEach(() => {
-    cleanup();
-    vi.useRealTimers();
-    vi.unstubAllGlobals();
-  });
-
-  it("renders live runtime status and detections", async () => {
-    render(<App />);
-
-    expect(await screen.findByText("RUNNING")).toBeInTheDocument();
-    expect(screen.getAllByText("person").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("laptop").length).toBeGreaterThan(0);
-    expect(screen.getByText("11.4")).toBeInTheDocument();
-    expect(screen.getByText("48 ms")).toBeInTheDocument();
-    expect(screen.getByText("2 saved")).toBeInTheDocument();
-    expect(screen.getByLabelText("CyberVisual")).toBeInTheDocument();
-    expect(screen.getByText("JETSON NANO")).toBeInTheDocument();
-    expect(screen.getByText("CYBERVISUAL")).toBeInTheDocument();
-    expect(screen.getByText("MODEL READY")).toBeInTheDocument();
-    expect(screen.getByText("NVIDIA CUDA")).toBeInTheDocument();
-    expect(screen.getByText("TENSORRT")).toBeInTheDocument();
-  });
-
-  it("opens settings and saves threshold updates", async () => {
-    render(<App />);
-    await screen.findByText("RUNNING");
-
-    fireEvent.click(screen.getByLabelText("Open settings"));
-    fireEvent.change(screen.getByLabelText("Confidence"), { target: { value: "0.72" } });
-    fireEvent.click(screen.getByLabelText("Auto person snapshot"));
-    fireEvent.change(screen.getByLabelText("Cooldown seconds"), { target: { value: "45" } });
-    fireEvent.click(screen.getByText("Save"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Settings saved")).toBeInTheDocument();
-    });
-    const request = putConfigRequest();
-    expect(request.confidence).toBe(0.72);
-    expect(request.auto_snapshot_enabled).toBe(false);
-    expect(request.auto_snapshot_label).toBe("person");
-    expect(request.auto_snapshot_cooldown_seconds).toBe(45);
-  });
-
-  it("handles older status payloads without auto snapshot fields", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-        const url = String(input);
-        if (url.includes("/api/status")) {
-          const legacyStatus = { ...statusPayload } as Partial<typeof statusPayload>;
-          delete legacyStatus.auto_snapshot;
-          return jsonResponse(legacyStatus);
-        }
-        if (url.includes("/api/detections/latest")) return jsonResponse(detectionsPayload);
-        if (url.includes("/api/config") && init?.method === "PUT") return jsonResponse(configPayload);
-        if (url.includes("/api/config")) return jsonResponse(configPayload);
-        return jsonResponse({}, 404);
-      })
-    );
-
-    render(<App />);
-
-    expect(await screen.findByText("RUNNING")).toBeInTheDocument();
-    expect(screen.getByText("0 saved")).toBeInTheDocument();
-  });
-
-  it("polls runtime data together every second and stops after unmount", async () => {
-    vi.useFakeTimers();
-    const view = render(<App />);
-    await act(async () => {});
-
-    expect(screen.getByText("RUNNING")).toBeInTheDocument();
-    expect(requestCount("/api/status")).toBe(1);
-    expect(requestCount("/api/detections/latest")).toBe(1);
-    expect(requestCount("/api/config")).toBe(1);
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-    expect(requestCount("/api/status")).toBe(2);
-    expect(requestCount("/api/detections/latest")).toBe(2);
-    expect(requestCount("/api/config")).toBe(1);
-
-    view.unmount();
-    await act(async () => { await vi.advanceTimersByTimeAsync(5000); });
-    expect(requestCount("/api/status")).toBe(2);
-    expect(requestCount("/api/detections/latest")).toBe(2);
-  });
-
-  it("retains the last complete runtime frame on polling failure and recovers", async () => {
-    vi.useFakeTimers();
-    render(<App />);
-    await act(async () => {});
-
-    const previousFetch = fetch;
-    let unavailable = true;
-    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input).includes("/api/status")) return jsonResponse({ ...statusPayload, fps: 20.5 });
-      if (String(input).includes("/api/detections/latest")) {
-        return unavailable ? Promise.reject(new Error("Detection service unavailable")) : jsonResponse({ ...detectionsPayload, detections: [] });
-      }
-      return previousFetch(input, init);
-    }));
-
-    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-    expect(screen.getByText("Detection service unavailable")).toBeInTheDocument();
-    expect(screen.getByText("11.4")).toBeInTheDocument();
-    expect(screen.queryByText("20.5")).not.toBeInTheDocument();
-    expect(screen.getAllByText("person").length).toBeGreaterThan(0);
-
-    unavailable = false;
-    await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-    expect(screen.queryByText("Detection service unavailable")).not.toBeInTheDocument();
-    expect(screen.getByText("20.5")).toBeInTheDocument();
-    expect(screen.getByText("No objects above threshold")).toBeInTheDocument();
-    expect(screen.getByText("No classes detected")).toBeInTheDocument();
-  });
-
-  it("saves a snapshot and shows its filename", async () => {
-    render(<App />);
-    await screen.findByText("RUNNING");
-    fireEvent.click(screen.getByLabelText("Save snapshot"));
-
-    expect(await screen.findByText("Snapshot saved: snapshot.jpg")).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith("/api/snapshot", { method: "POST" });
-  });
-
-  it("shows the server error when a snapshot cannot be saved", async () => {
-    const previousFetch = fetch;
-    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input).includes("/api/snapshot")) return jsonResponse({ error: "Snapshot storage unavailable" }, 503);
-      return previousFetch(input, init);
-    }));
-    render(<App />);
-    await screen.findByText("RUNNING");
-    fireEvent.click(screen.getByLabelText("Save snapshot"));
-
-    expect(await screen.findByText("Snapshot storage unavailable")).toBeInTheDocument();
-    expect(screen.queryByText("Snapshot saved: snapshot.jpg")).not.toBeInTheDocument();
-  });
-
-  it("refreshes the stream URL and displays an offline placeholder on image failure", async () => {
-    render(<App />);
-    await screen.findByText("RUNNING");
-    const stream = screen.getByAltText("Live YOLO detection stream");
-    expect(stream).toHaveAttribute("src", "/stream.mjpg?view=0");
-
-    fireEvent.click(screen.getByLabelText("Reload stream"));
-    expect(stream).toHaveAttribute("src", "/stream.mjpg?view=1");
-    fireEvent.error(stream);
-    expect(screen.getByText("Stream offline")).toBeInTheDocument();
-    expect(screen.queryByAltText("Live YOLO detection stream")).not.toBeInTheDocument();
-  });
-
-  it("shows connection addresses and identifies simulated PTZ", async () => {
-    const previousFetch = fetch;
-    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input).includes("/api/status")) return jsonResponse({
-        ...statusPayload,
-        network_camera: {
-          enabled: true, state: "running", credentials_configured: true,
-          onvif_url: "http://192.168.1.20:8000/onvif/device_service", encoder: "x264enc",
-          last_error: null, discovery: { state: "running", last_error: null },
-          events: { online: true, subscribers: 1, presence: { person: true, vehicle: false }, last_error: null },
-          ptz: { enabled: true, driver: "simulated", simulated: true, position: null },
-          profiles: [
-            { token: "raw", name: "Original", rtsp_uri: "rtsp://192.168.1.20:8554/raw", snapshot_uri: null },
-            { token: "annotated", name: "AI annotated", rtsp_uri: "rtsp://192.168.1.20:8554/annotated", snapshot_uri: null }
-          ]
-        }
-      });
-      return previousFetch(input, init);
-    }));
-    render(<App />);
-    expect(await screen.findByText("rtsp://192.168.1.20:8554/raw")).toBeInTheDocument();
-    expect(screen.getByText("rtsp://192.168.1.20:8554/annotated")).toBeInTheDocument();
-    expect(screen.getByText("Simulated")).toBeInTheDocument();
-    expect(screen.getByText("Account configured")).toBeInTheDocument();
-  });
-
-  it("shows a PTZ fault while retaining camera connection details", async () => {
-    const previousFetch = fetch;
-    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input).includes("/api/status")) return jsonResponse({
-        ...statusPayload,
-        network_camera: {
-          enabled: true, state: "running", credentials_configured: true,
-          onvif_url: "http://192.168.1.20:8000/onvif/device_service", encoder: "x264enc",
-          last_error: null, discovery: { state: "running", last_error: null },
-          events: { online: true, subscribers: 0, presence: {}, last_error: null },
-          ptz: { enabled: true, driver: "simulated", state: "unavailable", simulated: false,
-            position: null, last_error: "PTZ driver is not ready." },
-          profiles: [
-            { token: "raw", name: "Original", rtsp_uri: "rtsp://192.168.1.20:8554/raw", snapshot_uri: null }
-          ]
-        }
-      });
-      return previousFetch(input, init);
-    }));
-    render(<App />);
-    expect(await screen.findByText("PTZ driver is not ready.")).toBeInTheDocument();
-    expect(screen.getByText("Unavailable")).toBeInTheDocument();
-    expect(screen.getByText("rtsp://192.168.1.20:8554/raw")).toBeInTheDocument();
-  });
-});
-
-function requestCount(path: string) {
-  return vi.mocked(fetch).mock.calls.filter(([url]) => String(url).includes(path)).length;
+function route(value: string) {
+  window.history.replaceState(null, "", `/#/${value}`);
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
 }
-
-function putConfigRequest() {
-  const fetchMock = fetch as unknown as { mock: { calls: Array<[RequestInfo | URL, RequestInit?]> } };
-  const call = fetchMock.mock.calls.find(([url, init]) => String(url).includes("/api/config") && init?.method === "PUT");
-  if (!call || typeof call[1]?.body !== "string") {
-    throw new Error("PUT /api/config was not called with a JSON body");
-  }
-  return JSON.parse(call[1].body);
+async function navigate(value: string) {
+  await act(async () => route(value));
 }
-
-function jsonResponse(payload: unknown, status = 200) {
-  return Promise.resolve(
-    new Response(JSON.stringify(payload), {
-      status,
-      headers: { "Content-Type": "application/json" }
-    })
+function section(title: string) {
+  return within(
+    screen.getByRole("heading", { name: title, level: 2 }).closest("section")!,
   );
 }
+function commands() {
+  return vi
+    .mocked(fetch)
+    .mock.calls.filter(([url]) => String(url) === "/api/ptz/command")
+    .map(([, init]) => JSON.parse(String(init?.body)));
+}
+function puts() {
+  return vi
+    .mocked(fetch)
+    .mock.calls.filter(
+      ([url, init]) => String(url) === "/api/config" && init?.method === "PUT",
+    )
+    .map(([, init]) => JSON.parse(String(init?.body)));
+}
+
+describe("device console", () => {
+  beforeEach(() => {
+    route("overview");
+    vi.stubGlobal("scrollTo", vi.fn());
+    installFetch();
+  });
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+  it("opens overview with five destinations and keeps the video connection closed", async () => {
+    render(<App />);
+    expect(await screen.findByText("设备运行中")).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: "主导航" }).querySelectorAll("a"),
+    ).toHaveLength(5);
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(
+      vi
+        .mocked(fetch)
+        .mock.calls.some(([url]) => String(url).includes("detections")),
+    ).toBe(false);
+    expect(screen.getByText("11.4")).toBeInTheDocument();
+  });
+  it("supports direct NVR links and reports output independently from the external NVR", async () => {
+    route("nvr");
+    render(<App />);
+    expect(
+      await screen.findByDisplayValue("rtsp://192.168.1.20:8554/raw"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue("rtsp://192.168.1.20:8554/annotated"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("正在发布")).toBeInTheDocument();
+    expect(screen.getByText("等待取流")).toBeInTheDocument();
+    expect(screen.queryByText("NVR 已连接")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /NVR 接入/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+  it("shows discovery, encoder and source failures even while the protocol service is running", async () => {
+    const status = statusPayload();
+    status.camera.error = "摄像头连接中断";
+    status.network_camera!.discovery = {
+      state: "error",
+      last_error: "发现接口不可用",
+    };
+    status.network_camera!.events = {
+      ...status.network_camera!.events,
+      online: false,
+      last_error: "推理进程中断",
+    };
+    status.network_camera!.profiles[0] = {
+      ...status.network_camera!.profiles[0],
+      active: false,
+      last_error: "H.264 编码器无法启动",
+    };
+    installFetch({ "/api/status": () => jsonResponse(status) });
+    route("nvr");
+    render(<App />);
+    expect(await screen.findByText("输出故障")).toBeInTheDocument();
+    expect(screen.getByText(/发现接口不可用/)).toBeInTheDocument();
+    expect(screen.getByText(/H.264 编码器无法启动/)).toBeInTheDocument();
+    expect(screen.getByText(/摄像头连接中断/)).toBeInTheDocument();
+    expect(screen.getByText(/推理进程中断/)).toBeInTheDocument();
+    expect(screen.queryByText("正在发布")).not.toBeInTheDocument();
+    expect(screen.getByText("分析离线")).toBeInTheDocument();
+  });
+  it("reconnects an errored preview, pauses and releases it when leaving", async () => {
+    route("monitor");
+    render(<App />);
+    const image = await screen.findByRole("img");
+    const oldSource = image.getAttribute("src");
+    expect(
+      screen
+        .getAllByRole("heading", { level: 2 })
+        .map((node) => node.textContent),
+    ).toEqual(["实时画面", "云台控制", "当前检测"]);
+    fireEvent.error(image);
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重新连接" }));
+    expect(screen.getByRole("img").getAttribute("src")).not.toBe(oldSource);
+    fireEvent.click(screen.getByRole("button", { name: "暂停预览" }));
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "恢复预览" }));
+    expect(screen.getByRole("img")).toBeInTheDocument();
+    await navigate("events");
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "近期事件" }),
+    ).toBeInTheDocument();
+  });
+  it("retains configuration drafts across pages and only submits the AI group", async () => {
+    route("settings");
+    render(<App />);
+    const field = await screen.findByLabelText("置信度阈值");
+    fireEvent.change(field, { target: { value: ".72" } });
+    await navigate("overview");
+    expect(puts()).toHaveLength(0);
+    await navigate("settings");
+    expect(screen.getByLabelText("置信度阈值")).toHaveValue(0.72);
+    fireEvent.click(
+      section("AI 检测").getByRole("button", { name: "保存配置" }),
+    );
+    expect(await screen.findByText("配置已保存并应用。")).toBeInTheDocument();
+    expect(puts()[0]).toEqual({
+      confidence: 0.72,
+      iou: 0.45,
+      class_allowlist: [],
+      model_path: configPayload.model_path,
+      detector_backend: "mock",
+    });
+  });
+  it("keeps unsaved dimensions separate from applied configuration and supports undo", async () => {
+    route("settings");
+    render(<App />);
+    fireEvent.change(await screen.findByLabelText(/画面宽度/), {
+      target: { value: "800" },
+    });
+    await navigate("overview");
+    expect(screen.getByText("640 × 480")).toBeInTheDocument();
+    await navigate("settings");
+    expect(screen.getByLabelText(/画面宽度/)).toHaveValue(800);
+    fireEvent.click(
+      section("视频源").getByRole("button", { name: "撤销修改" }),
+    );
+    expect(screen.getByLabelText(/画面宽度/)).toHaveValue(640);
+  });
+  it("retains a rejected draft and focuses the error", async () => {
+    const original = fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) =>
+        init?.method === "PUT"
+          ? jsonResponse({ error: "配置保存失败" }, 400)
+          : original(input, init),
+      ),
+    );
+    route("settings");
+    render(<App />);
+    fireEvent.change(await screen.findByLabelText("置信度阈值"), {
+      target: { value: ".8" },
+    });
+    fireEvent.click(
+      section("AI 检测").getByRole("button", { name: "保存配置" }),
+    );
+    expect(await screen.findByText("配置保存失败")).toBeInTheDocument();
+    expect(screen.getByLabelText("置信度阈值")).toHaveValue(0.8);
+    expect(
+      section("AI 检测").getByRole("button", { name: "保存配置" }),
+    ).toBeEnabled();
+  });
+  it("saves NVR fields without overwriting the driver or other configuration groups", async () => {
+    route("nvr");
+    render(<App />);
+    fireEvent.change(await screen.findByLabelText("RTSP 端口"), {
+      target: { value: "9554" },
+    });
+    fireEvent.click(
+      section("协议配置").getByRole("button", { name: "保存配置" }),
+    );
+    await screen.findByText("配置已保存，运行结果请查看协议与云台状态。");
+    expect(Object.keys(puts()[0])).toEqual(["network_camera"]);
+    expect(puts()[0].network_camera.rtsp_port).toBe(9554);
+    expect(puts()[0].network_camera).not.toHaveProperty("ptz_driver");
+  });
+  it("blocks enabling protocols until deployment credentials are configured", async () => {
+    const status = statusPayload();
+    status.network_camera!.credentials_configured = false;
+    installFetch({
+      "/api/status": () => jsonResponse(status),
+      "/api/config": () =>
+        jsonResponse({
+          ...configPayload,
+          network_camera: { ...configPayload.network_camera!, enabled: false },
+        }),
+    });
+    route("nvr");
+    render(<App />);
+    expect(
+      await screen.findByRole("checkbox", { name: /启用网络摄像头协议/ }),
+    ).toBeDisabled();
+    expect(screen.getByText("CYBERVISUAL_ONVIF_PASSWORD")).toBeInTheDocument();
+  });
+  it("offers a selectable address when clipboard access is unavailable", async () => {
+    vi.stubGlobal("navigator", { ...navigator, clipboard: undefined });
+    route("nvr");
+    render(<App />);
+    await screen.findByDisplayValue("rtsp://192.168.1.20:8554/raw");
+    fireEvent.click(screen.getByRole("button", { name: "复制原始 RTSP 地址" }));
+    expect(
+      await screen.findByText("地址已选中，请手动复制。"),
+    ).toBeInTheDocument();
+    const input = screen.getByDisplayValue(
+      "rtsp://192.168.1.20:8554/raw",
+    ) as HTMLInputElement;
+    expect(input).toHaveFocus();
+    expect(input.selectionEnd).toBe(input.value.length);
+  });
+  it("marks presence unknown during analysis outages and supports filtering and pagination", async () => {
+    const events = eventPayload();
+    events.status.online = false;
+    events.events = Array.from({ length: 45 }, (_, index) => ({
+      ...events.events[0],
+      id: String(index),
+      category: index % 2 ? "vehicle" : "person",
+      frame_ts: Date.now() / 1000 - index,
+    }));
+    installFetch({ "/api/events/recent": () => jsonResponse(events) });
+    route("events");
+    render(<App />);
+    expect((await screen.findAllByText("状态未知")).length).toBeGreaterThan(0);
+    expect(screen.getByText(/最近已知：存在/)).toBeInTheDocument();
+    expect(screen.getByText("第 1 / 3 页")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "下一页事件" }));
+    expect(screen.getByText("第 2 / 3 页")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("事件类别"), {
+      target: { value: "person" },
+    });
+    expect(screen.getByText("第 1 / 2 页")).toBeInTheDocument();
+    expect(screen.queryByText("车辆出现")).not.toBeInTheDocument();
+  });
+  it("moves only while a direction is held and stops on release", async () => {
+    route("monitor");
+    render(<App />);
+    const right = await screen.findByRole("button", { name: "向右移动" });
+    await waitFor(() => expect(right).toBeEnabled());
+    fireEvent(
+      right,
+      new MouseEvent("pointerdown", { button: 0, bubbles: true }),
+    );
+    await waitFor(() => expect(commands()[0]?.action).toBe("continuous_move"));
+    fireEvent.pointerUp(right, { pointerId: 1 });
+    await waitFor(() =>
+      expect(commands()[commands().length - 1]?.action).toBe("stop"),
+    );
+    expect(commands()[0].pan).toBe(0.3);
+  });
+  it("queues stop after an in-flight movement when navigating away", async () => {
+    let finish: (() => void) | undefined;
+    const original = fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        if (
+          String(input) === "/api/ptz/command" &&
+          String(init?.body).includes("continuous_move")
+        )
+          return new Promise<Response>((resolve) => {
+            finish = () =>
+              resolve(
+                new Response(JSON.stringify(ptzPayload), { status: 200 }),
+              );
+          });
+        return original(input, init);
+      }),
+    );
+    route("monitor");
+    render(<App />);
+    const right = await screen.findByRole("button", { name: "向右移动" });
+    await waitFor(() => expect(right).toBeEnabled());
+    fireEvent.keyDown(right, { key: " " });
+    await waitFor(() => expect(finish).toBeDefined());
+    await navigate("overview");
+    await act(async () => finish!());
+    await waitFor(() =>
+      expect(commands()[commands().length - 1]?.action).toBe("stop"),
+    );
+    expect(
+      commands().filter((command) => command.action === "continuous_move"),
+    ).toHaveLength(1);
+  });
+  it("stops on window blur and hides the video in background tabs", async () => {
+    route("monitor");
+    render(<App />);
+    const up = await screen.findByRole("button", { name: "向上移动" });
+    await waitFor(() => expect(up).toBeEnabled());
+    fireEvent.keyDown(up, { key: "Enter" });
+    await waitFor(() => expect(commands()[0]?.action).toBe("continuous_move"));
+    fireEvent(window, new Event("blur"));
+    await waitFor(() =>
+      expect(commands()[commands().length - 1]?.action).toBe("stop"),
+    );
+    vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    fireEvent(document, new Event("visibilitychange"));
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+  it("reports disabled PTZ without offering working movement buttons", async () => {
+    installFetch({
+      "/api/ptz": () =>
+        jsonResponse({
+          ...ptzPayload,
+          enabled: false,
+          state: "disabled",
+          simulated: false,
+          position: null,
+        }),
+    });
+    route("monitor");
+    render(<App />);
+    expect(await screen.findByText(/云台尚未启用/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "向右移动" })).toBeDisabled();
+    expect(commands()).toHaveLength(0);
+  });
+  it("reports snapshot storage on the device", async () => {
+    route("monitor");
+    render(<App />);
+    const snapshot = await screen.findByRole("button", { name: "保存快照" });
+    await waitFor(() => expect(snapshot).toBeEnabled());
+    fireEvent.click(snapshot);
+    expect(
+      await screen.findByText("快照已保存到设备：/captures/test.jpg"),
+    ).toBeInTheDocument();
+  });
+  it("accepts older status payloads without network or snapshot fields", async () => {
+    const legacy = statusPayload() as Partial<ReturnType<typeof statusPayload>>;
+    delete legacy.network_camera;
+    delete legacy.auto_snapshot;
+    installFetch({ "/api/status": () => jsonResponse(legacy) });
+    render(<App />);
+    expect(await screen.findByText("设备运行中")).toBeInTheDocument();
+    expect(screen.getByText("已关闭")).toBeInTheDocument();
+  });
+});

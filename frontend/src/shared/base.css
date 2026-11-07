@@ -1,56 +1,151 @@
 :root {
-  font-family: "IBM Plex Sans", "Aptos", "Segoe UI", sans-serif;
-  color: #f4f7f2;
-  background: #090b0c;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  color: #edf0ed;
+  background: #101214;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --accent: #76b900;
-  --accent-soft: rgba(118, 185, 0, 0.22);
-  --surface: #111417;
-  --surface-2: #181c20;
-  --surface-3: #20262b;
-  --line: rgba(232, 238, 229, 0.14);
-  --muted: #98a39a;
-  --text: #f4f7f2;
-  --warn: #ffc53d;
-  --bad: #ff5252;
-  --blue: #1f9cff;
-  --radius: 8px;
+  color-scheme: dark;
+  --background: #101214;
+  --surface: #191c1f;
+  --surface-raised: #202428;
+  --surface-subtle: #15181a;
+  --line: #30353a;
+  --muted: #a2aaa6;
+  --text: #edf0ed;
+  --accent: #a1d77e;
+  --accent-soft: #263424;
+  --bad: #ff9e99;
+  --warn: #edce86;
+  --radius: 12px;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+html {
+  min-width: 320px;
+  scroll-padding-top: 24px;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
-  min-height: 100%;
-  background:
-    linear-gradient(rgba(118, 185, 0, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(118, 185, 0, 0.03) 1px, transparent 1px),
-    linear-gradient(135deg, rgba(118, 185, 0, 0.13), transparent 32%),
-    #090b0c;
-  background-size: 64px 64px, 64px 64px, auto;
+  font-size: 16px;
+  line-height: 1.55;
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
+button,
+a,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+summary,
+select {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+button,
+input,
+select,
+textarea,
+a,
+summary {
+  outline-offset: 4px;
+}
+
+:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+small {
+  font-size: 12px;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  border: 0;
+}
+
+input:not([type="checkbox"]):not([type="range"]),
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid #40474b;
+  border-radius: 7px;
+  background: #121517;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+input::placeholder {
+  color: #8e9891;
+}
+
+input[type="range"] {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  margin: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input[readonly] {
+  color: #cbd2cc;
+  background: var(--surface-subtle);
 }

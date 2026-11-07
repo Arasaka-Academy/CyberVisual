@@ -7,6 +7,7 @@ from flask import Flask, Response, jsonify, request, send_from_directory
 from .config import ConfigValidationError
 from .runtime import RuntimeService, _capture_dir, mjpeg_stream
 from .network_camera.server import NetworkCameraService
+from .network_camera.management import register_management
 
 
 def create_app(config_path=None, runtime=None, auto_start=True):
@@ -18,6 +19,7 @@ def create_app(config_path=None, runtime=None, auto_start=True):
     if service.network_camera is None:
         service.network_camera = NetworkCameraService(service)
     service.network_camera.register(app)
+    register_management(app, service)
 
     if auto_start and not app.config.get("TESTING"):
         service.start()

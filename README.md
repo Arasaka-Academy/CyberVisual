@@ -1,6 +1,6 @@
 # CyberVisual
 
-CyberVisual is an edge vision console for USB-camera object detection on Jetson Nano, with a YOLO TensorRT runtime and a black/green web dashboard. The backend streams an annotated MJPEG feed and REST status/config endpoints; the frontend shows live detections, system health, metrics, snapshots, and runtime controls.
+CyberVisual is an edge vision console for USB-camera object detection on Jetson Nano, with a YOLO TensorRT runtime and a black/green web dashboard. The backend provides annotated MJPEG, ONVIF/RTSP, PTZ and event APIs. The Chinese device console separates overview, live monitoring, NVR integration, AI events and system settings.
 
 Optional **ONVIF + RTSP** output makes each CyberVisual a managed network camera:
 shared H.264 `/raw` and `/annotated` streams, person/vehicle PullPoint events,
@@ -74,6 +74,26 @@ The installer creates the Python environment, installs the systemd unit, enables
 
 The web UI listens on `0.0.0.0:8000` by default. From another device on the same LAN, open `http://<jetson-ip>:8000`.
 
+## 设备控制台
+
+控制台默认进入设备总览，支持直接访问与浏览器前进／后退：
+
+| 工作区 | 地址 | 用途 |
+| --- | --- | --- |
+| 设备总览 | `/#/overview` | 采集、推理、协议与云台状态 |
+| 实时监看 | `/#/monitor` | 标注视频、快照、云台方向／归位／预置位 |
+| NVR 接入 | `/#/nvr` | ONVIF、双路 RTSP、发现和编码配置 |
+| AI 事件 | `/#/events` | 当前存在状态与最近 200 条内存事件 |
+| 系统设置 | `/#/settings` | 视频源、AI 参数、自动快照与云台驱动 |
+
+配置按区域独立保存，切页保留草稿。隐藏标签页会暂停预览和状态轮询，
+离开监看、松开方向、失焦或触控取消会发送云台停止请求；每条浏览器连续移动指令最多运行 2 秒。
+模拟云台只验证标准化位置与预置位，不带动真实画面或电机。
+
+录像、回放和多设备管理由外部 NVR／CyberOS 承担。协议输出状态不代表 NVR 已接收或正在录像。
+页面提供的管理 API 沿用现有可信管理网络访问范围；ONVIF／RTSP 账号只由部署环境配置。
+详见 [控制台接口与接入说明](docs/network-camera.md#设备控制台与管理-api)。
+
 ## Backend API
 
 - `GET /stream.mjpg` - annotated MJPEG stream.
@@ -82,6 +102,9 @@ The web UI listens on `0.0.0.0:8000` by default. From another device on the same
 - `GET /api/config` - runtime config.
 - `PUT /api/config` - update thresholds, source, model path, allowlist, and resolution.
 - `POST /api/snapshot` - save current frame and detection JSON into `captures/`.
+- `GET /api/ptz` - shared PTZ capabilities, position, presets and driver status.
+- `POST /api/ptz/command` - JSON-only, allowlisted PTZ operations with a 2-second continuous movement lease.
+- `GET /api/events/recent` - current analytics state and the most recent 200 process-lifetime events.
 
 ## Notes
 

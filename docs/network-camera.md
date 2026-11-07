@@ -285,3 +285,66 @@ Jetson 设备验收仍需逐项记录：
 3. 多客户端持续运行、断开／重连、摄像头拔插／模型故障、systemd 重启和设备重启恢复。
 4. 重启后 UUID／Profile token／预置位稳定，原始视频不会被慢推理拖住。
 5. 当前 PTZ 验收到模拟驱动；真实电机驱动确定后单独进行物理验收。
+
+
+## 设备控制台与管理 API
+
+控制台包含 `/#/overview`、`/#/monitor`、`/#/nvr`、`/#/events`、`/#/settings` 五个工作区。
+桌面使用侧栏，窄屏使用五项底部导航。浏览器预览仍为标注 MJPEG；原始与标注 H.264
+通过 NVR 接入页提供给外部客户端。录制与回放由外部 NVR／CyberOS 实现。
+
+### 云台接口
+
+`GET /api/ptz` 返回 `enabled`、`driver`、`state`、`simulated`、`position`、
+`capabilities`、`presets`、`last_error`。禁用或驱动故障仍返回可读的 HTTP 200 状态；
+`position` 不可用时为 `null`。标准化 pan／tilt 范围均为 `[-1, 1]`，没有机械角度或缩放轴。
+
+`POST /api/ptz/command` 仅接受 JSON 对象。`action` 与字段如下：
+
+| action | 参数 | 行为 |
+| --- | --- | --- |
+| `absolute_move` | `pan`, `tilt` | 绝对定位 |
+| `relative_move` | `pan`, `tilt` | 相对步进，驱动实施限位 |
+| `continuous_move` | `pan`, `tilt` | 速度向量；固定 2 秒超时，不接受客户端延长 |
+| `stop` | 无 | 停止动作 |
+| `home` | 无 | 回到 `(0, 0)` |
+| `set_preset` | `name`，可选 `token` | 新增或覆盖当前位置，最多 32 个 |
+| `goto_preset` | `token` | 调用预置位 |
+| `remove_preset` | `token` | 删除预置位 |
+
+成功返回更新后的完整云台状态；非法参数返回 HTTP 400 `{ "error": "..." }`，
+禁用、驱动未就绪或持久化失败返回 HTTP 503。REST 与 ONVIF 复用同一控制器和持久化预置位。
+页面按住方向时每 500ms 续动，松开、失焦、隐藏或离页会停止续动并请求停止；
+断网无法确认停止时，驱动仍按最后一条已接收指令的 2 秒期限停止。重新连接不会自动恢复动作。
+
+这些接口沿用现有管理 API 的可信管理网络访问范围，不接收或返回 ONVIF 设备账号。
+协议账号、密码仍通过部署环境配置，不写入页面配置、地址或复制出的接入信息。
+
+### 近期事件接口
+
+`GET /api/events/recent` 返回：
+
+```json
+{
+  "capacity": 200,
+  "started_at": 1794000000.0,
+  "status": {"online": true, "presence": {"person": true, "vehicle": false}, "last_error": null, "subscribers": 0},
+  "events": [{"id": "stable-id", "topic": "Analytics/PersonPresence", "source": "camera0", "category": "person", "state": true, "frame_ts": 1794000001.0, "initialized": false}]
+}
+```
+
+`frame_ts` 为 UTC Unix 秒，记录按产生顺序返回，页面按时间倒序显示，每页 20 条。
+最近 200 条记录保存在进程内存，独立于浏览器和 ONVIF 订阅；超过上限淘汰最旧记录，重启后清空。
+只有实际状态变化进入历史；订阅初始化、同步和清理不会制造新出现事件或清空历史。
+`online=false` 表示分析源离线，`presence` 仅为最近已知状态，界面显示为未知，不据此判断消失。
+
+### 配置和运行状态
+
+NVR 页面只保存协议非敏感字段；系统设置分别保存采集、检测、快照和驱动字段。
+草稿与已生效配置分离，切页保留草稿，写入超时会重新读取配置确认，不自动重复写入。
+协议配置或驱动变化会重启协议输出并使既有订阅失效，客户端需要重新连接。
+页面分别报告服务运行、发现和每路视频发布状态，不能据此推断外部 NVR 正在接收或录像。
+
+可见页面每秒更新全局状态；监看页更新检测与云台，事件页每 2 秒读取近期记录。
+读取请求不重叠；隐藏页面暂停轮询与 MJPEG。超过 5 秒未成功更新的数据标记过期，失败可单独重试。
+普通局域网 HTTP 下若剪贴板不可用，复制操作会选中地址并提示手动复制。

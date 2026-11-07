@@ -1,14 +1,7 @@
-import { getJson } from "../../shared/api";
-import type { RuntimeConfig } from "./types";
+import { getJson, jsonBody } from "../../shared/api";
+import type { RuntimeConfig, ConfigPatch } from "./types";
+export const getConfig = (signal?: AbortSignal) =>
+  getJson<RuntimeConfig>("/api/config", { signal });
 
-export async function getConfig(): Promise<RuntimeConfig> {
-  return getJson<RuntimeConfig>("/api/config");
-}
-
-export async function updateConfig(config: Partial<RuntimeConfig>): Promise<RuntimeConfig> {
-  return getJson<RuntimeConfig>("/api/config", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(config)
-  });
-}
+export const updateConfig = (config: ConfigPatch) =>
+  getJson<RuntimeConfig>("/api/config", jsonBody(config, "PUT"));
